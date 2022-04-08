@@ -61,13 +61,9 @@ where
   <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda_S \equiv \frac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda_S \equiv \frac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}#gh-dark-mode-only"> 
 </p>
-is the marginal distribution of the sub-population in S, with 
-<img src="https://render.githubusercontent.com/render/math?math={\large{\mathbb{I}_{s \in S}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\mathbb{I}_{s \in S}}#gh-dark-mode-only"> 
-and indicator variable for whether or not 
-<img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">.
-
+is the marginal distribution of the sub-population in S, with <img src="https://render.githubusercontent.com/render/math?math={\large{\mathbb{I}_{s \in S}}}#gh-light-mode-only"> <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\mathbb{I}_{s \in S}}#gh-dark-mode-only"> 
+and indicator variable for whether or not <img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only"> <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">.
+<br/>
 
 The equation above applies to a wide range of moments. 
 For example, the moments of the wealth distribution (an endogenous state) for the whole population or a subgroup (say among the top income earners), or to define percentiles or other descriptors of the distribution. 
