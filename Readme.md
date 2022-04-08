@@ -1,4 +1,4 @@
-# Computing Longitudinal Moments for Heterogeneous Agent Models
+# Computing Longitudinal Moments for <br/> Heterogeneous Agent Models
 #### **Sergio Ocampo and Baxter Robinson**
 
 #### **University of Western Ontario**
@@ -57,14 +57,16 @@ These moments involve taking expectations over some variable of interest (x) for
   <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}E\left[x|s \in S\right] = \int_{s \in S} x\left(s\right) \lambda_S\left(s\right) ds,}#gh-dark-mode-only">
 </p>
 where
+<p align="center">
   <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda_S \equiv \frac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda_S \equiv \frac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}#gh-dark-mode-only"> 
+</p>
 is the marginal distribution of the sub-population in S, with 
-  <img src="https://render.githubusercontent.com/render/math?math={\large{\mathbb{I}_{s \in S}}}#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\mathbb{I}_{s \in S}}#gh-dark-mode-only"> 
+<img src="https://render.githubusercontent.com/render/math?math={\large{\mathbb{I}_{s \in S}}}#gh-light-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\mathbb{I}_{s \in S}}#gh-dark-mode-only"> 
 and indicator variable for whether or not 
-  <img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">.
+<img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">.
 
 
 The equation above applies to a wide range of moments. 
