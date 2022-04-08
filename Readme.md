@@ -1,4 +1,4 @@
-# Git Repository for ``Computing Longitudinal Moments for Heterogeneous Agent Models''
+# Computing Longitudinal Moments for Heterogeneous Agent Models
 #### **Sergio Ocampo and Baxter Robinson**
 
 #### **University of Western Ontario**
