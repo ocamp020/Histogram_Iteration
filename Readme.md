@@ -20,7 +20,10 @@ We take as given the model's solution in the form of policy functions for agents
 This evolution is captured by a Markov kernel, 
   <img src="https://render.githubusercontent.com/render/math?math={\large{T\left(s^{'}|s\right)}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}T\left(s^{'}|s\right)}#gh-dark-mode-only">, 
-that maps the transition of agents from a current state $s$ into a future state 
+that maps the transition of agents from a current state 
+  <img src="https://render.githubusercontent.com/render/math?math={\large{s}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s}#gh-dark-mode-only">
+into a future state 
   <img src="https://render.githubusercontent.com/render/math?math={\large{s^{'}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s^{'}}#gh-dark-mode-only">
 in the state space 
