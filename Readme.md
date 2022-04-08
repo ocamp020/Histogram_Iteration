@@ -15,12 +15,34 @@ The method is implemented in Julia and Matlab.<br/>
 
 We take as given the model's solution in the form of policy functions for agents that, together with the stochastic processes of exogenous states, implies an evolution for the agents in the economy. 
 This evolution is captured by a Markov kernel, 
-$T\left(s^{'} |s\right)$, that maps the transition of agents from a current state $s$ into a future state $s^{'}$ in the state space ${\cal S}$.
-The stationary distribution, $\lambda$, is the solution to<br/>
-
-$$\lambda (s^{'}) = \int_{s\in{\cal S}} T(s^{'}|s) \lambda(s) ds$$
-<img src="https://render.githubusercontent.com/render/math?math={\L = -\sum_{j}[T_{j}ln(O_{j})] + \frac{\lambda W_{ij}^{2}}{2} \rightarrow \text{one-hot} \rightarrow -ln(O_{c}) + \frac{\lambda W_{ij}^{2}}{2}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\color{white}\L = -\sum_{j}[T_{j}ln(O_{j})] + \frac{\lambda W_{ij}^{2}}{2} \rightarrow \text{one-hot} \rightarrow -ln(O_{c}) + \frac{\lambda W_{ij}^{2}}{2}}#gh-dark-mode-only">
-
+  <img src="https://render.githubusercontent.com/render/math?math={
+    T\left(s^{'} |s\right)
+    }#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\color{white}
+    T\left(s^{'} |s\right)
+    }#gh-dark-mode-only">, 
+that maps the transition of agents from a current state $s$ into a future state 
+<img src="https://render.githubusercontent.com/render/math?math={
+    s^{'}
+    }#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\color{white}
+    s^{'}
+    }#gh-dark-mode-only">
+in the state space 
+  <img src="https://render.githubusercontent.com/render/math?math={
+    {\cal S}
+    }#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\color{white}
+    {\cal S}
+    }#gh-dark-mode-only">.
+The stationary distribution, &lambda, is the solution to<br/>
+<p align="center">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large
+    \lambda\left(s^{'}\right) = \int_{s\in{\cal S}} T\left(s^{'}|s\right) \lambda\left(s\right) ds
+    }#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}
+    \lambda\left(s^{'}\right) = \int_{s\in{\cal S}} T\left(s^{'}|s\right) \lambda\left(s\right) ds
+    }#gh-dark-mode-only">
+</p>
 We describe how to use $\lambda$ and $T$ to directly compute cross-sectional and longitudinal moments, focusing on the distribution of agents rather than a simulated sample of them. 
 
