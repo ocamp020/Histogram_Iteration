@@ -19,6 +19,8 @@ $T\left(s^{'} |s\right)$, that maps the transition of agents from a current stat
 The stationary distribution, $\lambda$, is the solution to<br/>
 
 $$\lambda (s^{'}) = \int_{s\in{\cal S}} T(s^{'}|s) \lambda(s) ds$$
+<img src="https://render.githubusercontent.com/render/math?math={\L = -\sum_{j}[T_{j}ln(O_{j})] + \frac{\lambda W_{ij}^{2}}{2} \rightarrow \text{one-hot} \rightarrow -ln(O_{c}) + \frac{\lambda W_{ij}^{2}}{2}}#gh-light-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\color{white}\L = -\sum_{j}[T_{j}ln(O_{j})] + \frac{\lambda W_{ij}^{2}}{2} \rightarrow \text{one-hot} \rightarrow -ln(O_{c}) + \frac{\lambda W_{ij}^{2}}{2}}#gh-dark-mode-only">
 
 We describe how to use $\lambda$ and $T$ to directly compute cross-sectional and longitudinal moments, focusing on the distribution of agents rather than a simulated sample of them. 
 
