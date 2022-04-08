@@ -49,15 +49,16 @@ to directly compute cross-sectional and longitudinal moments, focusing on the di
 #### **Cross-sectional moments.**
 
 
-These moments involve taking expectations over some variable of interest (x) for some sub-population characterized by states  
+These moments involve taking expectations over some variable of interest (x) for some sub-population characterized by states 
   <img src="https://render.githubusercontent.com/render/math?math={\large{s\in S\subseteq{\cal S}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s\in S\subseteq{\cal S}}#gh-dark-mode-only">,
-\begin{align}
-    E\left[x|s \in S\right] = \int_{s \in S} x\left(s\right) \lambda_S\left(s\right) ds,
-    \label{eq: Cross-sectional moment}
-\end{align}
+<p align="center">
+    <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s \in S\right] = \int_{s \in S} x\left(s\right) \lambda_S\left(s\right) ds,}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}E\left[x|s \in S\right] = \int_{s \in S} x\left(s\right) \lambda_S\left(s\right) ds,}#gh-dark-mode-only">
+</p>
 where 
-$\lambda_S \equiv \nicefrac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}$ 
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda_S \equiv \nicefrac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda_S \equiv \nicefrac{\mathbb{I}_{s \in S}\lambda\left(s\right)}{\int\mathbb{I}_{s \in S}\lambda\left(s\right)ds}}#gh-dark-mode-only"> 
 is the marginal distribution of the sub-population in S, with 
 $\mathbb{I}_{s \in S}$ 
 and indicator variable for whether or not 
