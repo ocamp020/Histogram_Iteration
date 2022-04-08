@@ -111,7 +111,7 @@ In the second case, we must follow the possible paths of each individual and com
 where
   <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only"> 
-is the future distribution of the mass of agents that starts in state
+is the future distribution of the mass of agents that starts in state 
   <img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">  
 (i.e., given an initial distribution 
