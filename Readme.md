@@ -88,10 +88,12 @@ Consider an outcome of interest
 that depends on the initial and final state of an agent.
 This outcome could be any function of the initial, final, or intervening states of the agent. 
 For example, it could be an indicator function for whether the agent satisfies some condition in the future as being a top earner or having a certain occupation, or the agent's income. 
-The expectation of interest depends on whether we focus on the behavior of the group of agents (as in transition rates) or of individual agents (as in the auto-correlation of income). 
+The expectation of interest depends on whether we focus on the behavior of the group of agents (as in transition rates) or of individual agents (as in the auto-correlation of income).<br/>
+
+
 In the first case, we must follow the group 
   <img src="https://render.githubusercontent.com/render/math?math={\large{\left(S\right)}}#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(S\right)}#gh-dark-mode-only"> 
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(S\right)}#gh-dark-mode-only">
 as a whole and compute
 <p align="center">
     <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{S}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
