@@ -99,15 +99,16 @@ In the first case, we must follow the group
 <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(S\right)}#gh-dark-mode-only">
 as a whole and compute
 <p align="center">
-    <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{S}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{S}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{S}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}#gh-dark-mode-only">
 </p>
+
 where
-<img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{S}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{S}}#gh-dark-mode-only"> 
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{S}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{S}}#gh-dark-mode-only"> 
 is the future distribution of agents conditional on the initial distribution
-<img src="https://render.githubusercontent.com/render/math?math={\large{\lambda_{S}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda_{S}}#gh-dark-mode-only">.
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda_{S}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda_{S}}#gh-dark-mode-only">.
 In the second case, we must follow the possible paths of each individual and compute
 <p align="center">
   <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{\{s\}}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
@@ -130,17 +131,18 @@ The difficulty in evaluating the expectations needed for longitudinal moments re
   <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{S}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{S}}#gh-dark-mode-only">
 and 
-<img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only">
 because this requires accounting for the variation in individual paths between the initial and final period. 
 
 
 We directly compute the future distributions by iterating forward the initial distribution of agents using the Markov kernel
-<img src="https://render.githubusercontent.com/render/math?math={\large{\left(T\right)}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(T\right)}#gh-dark-mode-only">,
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\left(T\right)}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(T\right)}#gh-dark-mode-only">,
 <p align="center">
   <img src="https://render.githubusercontent.com/render/math?math={\Large{\lambda^{'}_{S}\left(s^'\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda_{S}\left(s\right)ds\,\quad\lambda^{'}_{\{s\}}\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\delta_{\{s\}}\left(s\right)ds.}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}\lambda^{'}_{S}\left(s^'\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda_{S}\left(s\right)ds\,\quad\lambda^{'}_{\{s\}}\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\delta_{\{s\}}\left(s\right)ds.}#gh-dark-mode-only">
 </p>
+
 Performing this iteration is relatively costless, as similar iterations are involved in finding the stationary distribution and the number of iterations required to compute the required future distributions are finite (and known).
 Once the future distributions are obtained, the moments can be computed directly from them.
