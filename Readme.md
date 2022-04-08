@@ -126,14 +126,14 @@ The difficulty in evaluating the expectations needed for longitudinal moments re
   <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{S}}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{S}}#gh-dark-mode-only">
 and 
-  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only">
 because this requires accounting for the variation in individual paths between the initial and final period. 
 
 
 We directly compute the future distributions by iterating forward the initial distribution of agents using the Markov kernel
-  <img src="https://render.githubusercontent.com/render/math?math={\large{\left(T\right)}}#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(T\right)}#gh-dark-mode-only">,
+<img src="https://render.githubusercontent.com/render/math?math={\large{\left(T\right)}}#gh-light-mode-only">
+<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(T\right)}#gh-dark-mode-only">,
 <p align="center">
   <img src="https://render.githubusercontent.com/render/math?math={\Large{\lambda^{'}_{S}\left(s^'\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda_{S}\left(s\right)ds\,\quad\lambda^{'}_{\{s\}}\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\delta_{\{s\}}\left(s\right)ds.}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}\lambda^{'}_{S}\left(s^'\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda_{S}\left(s\right)ds\,\quad\lambda^{'}_{\{s\}}\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\delta_{\{s\}}\left(s\right)ds.}#gh-dark-mode-only">
