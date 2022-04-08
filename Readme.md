@@ -113,6 +113,7 @@ In the second case, we must follow the possible paths of each individual and com
   <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{\{s\}}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
   <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{\{s\}}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}#gh-dark-mode-only">
 </p>
+
 where
 <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
 <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only"> 
