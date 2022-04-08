@@ -28,12 +28,8 @@ The stationary distribution,
   <img src="https://render.githubusercontent.com/render/math?math={\color{white}\lambda}#gh-dark-mode-only">, 
 is the solution to<br/>
 <p align="center">
-  <img src="https://render.githubusercontent.com/render/math?math={\Large
-    \lambda\left(s^{'}\right) = \int_{s\in{\cal S}} T\left(s^{'}|s\right) \lambda\left(s\right) ds
-    }#gh-light-mode-only">
-  <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}
-    \lambda\left(s^{'}\right) = \int_{s\in{\cal S}} T\left(s^{'}|s\right) \lambda\left(s\right) ds
-    }#gh-dark-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large\lambda\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda\left(s\right)ds}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\Large\color{white}\lambda\left(s^{'}\right)=\int_{s\in{\cal S}}T\left(s^{'}|s\right)\lambda\left(s\right)ds}#gh-dark-mode-only">
 </p>
 We describe how to use 
   <img src="https://render.githubusercontent.com/render/math?math={\lambda}#gh-light-mode-only">
