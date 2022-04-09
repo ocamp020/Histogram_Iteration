@@ -99,8 +99,8 @@ The expectation of interest depends on whether we focus on the behavior of the g
 
 
 In the first case, we must follow the group 
-<img src="https://render.githubusercontent.com/render/math?math={\large{\left(S\right)}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(S\right)}#gh-dark-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\left(S\right)}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\left(S\right)}#gh-dark-mode-only">
 as a whole and compute
 <p align="center">
   <img src="https://render.githubusercontent.com/render/math?math={\Large{E\left[x|s\in S\right]=\int_{s\in S}\,\int_{s^{'}\in{\cal S}}x\left(s,s^{'}\right)\lambda^{'}_{S}\left(s^{'}\right)ds^{'}\,\lambda_S\left(s\right)ds,}}#gh-light-mode-only">
@@ -120,14 +120,14 @@ In the second case, we must follow the possible paths of each individual and com
 </p>
 
 where
-<img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only"> 
+  <img src="https://render.githubusercontent.com/render/math?math={\large{\lambda^{'}_{\{s\}}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}\lambda^{'}_{\{s\}}}#gh-dark-mode-only"> 
 is the future distribution of the mass of agents that starts in state 
 <img src="https://render.githubusercontent.com/render/math?math={\large{s \in S}}#gh-light-mode-only">
 <img src="https://render.githubusercontent.com/render/math?math={\large\color{white}s \in S}#gh-dark-mode-only">  
 (i.e., given an initial distribution 
-<img src="https://render.githubusercontent.com/render/math?math={{\delta_{\{s\}}}}#gh-light-mode-only">
-<img src="https://render.githubusercontent.com/render/math?math={\color{white}\delta_{\{s\}}}#gh-dark-mode-only">).<br/>
+  <img src="https://render.githubusercontent.com/render/math?math={{\delta_{\{s\}}}}#gh-light-mode-only">
+  <img src="https://render.githubusercontent.com/render/math?math={\color{white}\delta_{\{s\}}}#gh-dark-mode-only">).<br/>
 <br/>
 
 
@@ -150,3 +150,8 @@ We directly compute the future distributions by iterating forward the initial di
 
 Performing this iteration is relatively costless, as similar iterations are involved in finding the stationary distribution and the number of iterations required to compute the required future distributions are finite (and known).
 Once the future distributions are obtained, the moments can be computed directly from them.
+
+<!---
+  Website for how to write equations into github markdown:
+  https://gist.github.com/a-rodin/fef3f543412d6e1ec5b6cf55bf197d7b
+-->
