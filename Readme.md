@@ -7,8 +7,8 @@
 
 <br/>
 This repository contains code that implements the histogram iteration method for computing longidudinal moments in heterogeneous agent models.<br/>
-The paper describing the method is located in the main folder. [Paper](https://github.com/ocamp020/Histogram_Iteration/blob/master/Histogram_Iteration_Method.pdf).<br/>
-The method is implemented in Julia and Matlab.<br/>[aaa](https://sites.google.com/site/sergiocampod)
+The paper describing the method is located in the main folder.<br/>
+The method is implemented in Julia and Matlab.<br/>
 <br/>
 <br/>
 
@@ -155,3 +155,5 @@ Once the future distributions are obtained, the moments can be computed directly
   Website for how to write equations into github markdown:
   https://gist.github.com/a-rodin/fef3f543412d6e1ec5b6cf55bf197d7b
 -->
+
+
