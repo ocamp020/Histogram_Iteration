@@ -2,8 +2,11 @@
 # Sergio Ocampo, Baxter Robinson, and Emmanuel Murray Leclair
 # April 2022
 # Aiyagari economy with inelastic labor supply
-# Solve:   V(ϵ,a) = max{ ((1+r)a+wϵ̄ϵ-a')^(1-γ)/(1-γ) +beta*E[V(ϵ',a')|ϵ] }
-#           log(ϵ') = ρ*log(ϵ) + η; η~N(0,σ); ϵ̄=exp(-σ^2/(2(1-ρ^2)))
+# Idiosyncratic labor efficiency shocks and rate of return shocks 
+# Solve:   V(ζ,ϵ,a) = max{ ((1+r(ζ))a+wϵ̄ϵ-a')^(1-γ)/(1-γ) +beta*E[V(ζ',ϵ',a')|ζ,ϵ] }
+#           log(ϵ') = ρ_ϵ*log(ϵ) + η_ϵ; η_ϵ~N(0,σ_ϵ); ϵ̄=exp(-σ^2/(2(1-ρ_ϵ^2)))
+#           r(ζ)    = exp(ζ)r_⋆    
+#           log(ζ') = ρ_ζ*log(ζ) + η_ζ; η_ζ~N(0,σ_ζ); 
 # The constant ϵ̄ guarantees that E[ϵ]=1 and so aggregate labor L=E[ϵ]=1
 
 ## Change directory if necessary
