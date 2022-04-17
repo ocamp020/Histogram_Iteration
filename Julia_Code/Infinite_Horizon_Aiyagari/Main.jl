@@ -43,22 +43,22 @@ println(" ")
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
-# Paramters and Model Structure
+# Parameters and Model Structure
     # Generate structure for parameters using Parameters module
     # We can set default values for our parameters
-    @with_kw struct Par
+    @with_kw struct Par 
         # Model Parameters
-        α::Float64 = 0.36 ; # Production function
+        α::Float64 = 0.36 ; # Production function 
         β::Float64 = 0.96 ; # Discount factor
         γ::Float64 = 2.0  ; # Relative risk aversion parameter
         δ::Float64 = 0.05 ; # Depreciation rate
         ρ::Float64 = 0.90 ; # Persistence of labor efficiency process
         σ::Float64 = 0.10 ; # Standard devaiation of labor efficiency innovation
         z_bar::Float64 = 1; # Reference level for productivity
-        ϵ̄::Float64 = exp(-σ^2/(2*(1-ρ^2))); # Refernce level for labor efficiency
+        ϵ̄::Float64 = exp(-σ^2/(2*(1-ρ^2))); # Reference level for labor efficiency
         # Borrowing constraint
         a_min::Float64 = 0; # Borrowing constraint
-        # VFI Paramters
+        # VFI Parameters
         max_iter::Int64   = 100000; # Maximum number of iterations
         dist_tol::Float64 = 1E-6  ; # Tolerance for distance
         # Howard's Policy Iterations
@@ -82,7 +82,7 @@ println(" ")
     # Generate structure of model objects
     @with_kw struct Model
         # Parameters
-        p::Par = Par() # Model paramters in their own structure
+        p::Par = Par() # Model parameters in their own structure
         # Steady State Values
         k_ss = (p.β*p.α*p.z_bar/(1-p.β*(1-p.δ)))^(1/(1-p.α))
         # Capital Grid
@@ -840,17 +840,19 @@ function Aiyagari_Equilibrium(M::Model)
     # Compute Policy Functions
     if Solver=="PFI"
     M   = PFI_Fixed_Point(T_EGM_G,M)
-        # Compute Value Function
-        M = Value_Function(M)
-    elseif Solver=="VFI"
-    M   = VFI_Fixed_Point(T_EGM_V,M)
     end
+    # Compute Value Function
+    #M = Value_Function(M)
+    #elseif Solver=="VFI"
+    #M   = VFI_Fixed_Point(T_EGM_V,M)
+    #end
 
     # Compute Distribution
-    M  = Histogram_Method(M)
+    #M  = Histogram_Method(M)
 
     # Return Model
     return M
+    
 
     # No convergence, Display error
     error("No convervence to equilibrium after $N_eq iterations. Current distance of capital: $(100*K_dist)%")
@@ -862,7 +864,7 @@ end
 # Execute Equilibrium and plot graphs
 
 println("===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
-@time M_Aiyagari = Aiyagari_Equilibrium(Model(Solver="PFI"))
+#@time M_Aiyagari = Aiyagari_Equilibrium(Model(Solver="PFI"))
 # Graphs
-    Aiyagari_Graph(M_Aiyagari,"Loop")
+    #Aiyagari_Graph(M_Aiyagari,"Loop")
     # Aiyagari_Stats(M_Aiyagari,"Loop")
