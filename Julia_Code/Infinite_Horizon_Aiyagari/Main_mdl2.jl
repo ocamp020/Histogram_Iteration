@@ -76,7 +76,7 @@ println(" ")
     end
 
 # Allocate paramters to object p for future calling
-p = Par()
+p = Par();
 
 # Generate structure of model objects
     # Model 1 : Aiyagari economy with infinitely lived agents and constant rate of returns
@@ -102,7 +102,7 @@ p = Par()
         a_mat     = repeat(a_grid',n_ϵ,1,n_ζ)
         a_mat_fine= repeat(a_grid_fine',n_ϵ,1,n_ζ)
         ϵ_mat     = p.ϵ̄*exp.(repeat(MP_ϵ.grid,1,n_a,n_ζ))
-        ζ_mat     = repeat(reshape(MP_ζ.grid,1,1,3),n_ϵ,n_a,1)
+        ζ_mat     = repeat(reshape(MP_ζ.grid,(1,1,n_ζ)),n_ϵ,n_a,1) 
         # Value and policy functions
         V         = Array{Float64}(undef,n_ϵ,n_a,n_ζ)       # Value Function
         G_ap      = Array{Float64}(undef,n_ϵ,n_a,n_ζ)       # Policy Function for capital
@@ -116,10 +116,7 @@ p = Par()
         Solver    = "PFI"
     end
 
-M = Model()
+M = Model();
 
-# Outside the model (works)
-ζ_mat     = zeros(M.n_ϵ,M.n_a,M.n_ζ)
-for i_ζ=1:M.n_ζ
-    ζ_mat[:,:,i_ζ] = p.ζ*exp.(fill(M.MP_ζ.grid[i_ζ],M.n_ϵ,M.n_a))
-end
+
+
