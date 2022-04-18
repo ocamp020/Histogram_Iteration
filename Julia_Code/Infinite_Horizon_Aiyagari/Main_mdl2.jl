@@ -102,11 +102,7 @@ p = Par()
         a_mat     = repeat(a_grid',n_ϵ,1,n_ζ)
         a_mat_fine= repeat(a_grid_fine',n_ϵ,1,n_ζ)
         ϵ_mat     = p.ϵ̄*exp.(repeat(MP_ϵ.grid,1,n_a,n_ζ))
-        ζ_mat     = zeros(n_ϵ,n_a,n_ζ)
-        # Inside the model (doesn't work)
-        for i_ζ=1:n_ζ
-            ζ_mat[:,:,i_ζ] = p.ζ*exp.(fill(MP_ζ.grid[i_ζ],n_ϵ,n_a))
-        end
+        ζ_mat     = repeat(reshape(MP_ζ.grid,1,1,3),n_ϵ,n_a,1)
         # Value and policy functions
         V         = Array{Float64}(undef,n_ϵ,n_a,n_ζ)       # Value Function
         G_ap      = Array{Float64}(undef,n_ϵ,n_a,n_ζ)       # Policy Function for capital
