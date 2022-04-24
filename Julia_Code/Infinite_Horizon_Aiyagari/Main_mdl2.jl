@@ -269,7 +269,6 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
     if Γ_0==nothing
         Γ_0 = M.Γ
     end
-    println("test1")
     # Discretize distribution
     H_ind    = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)
     H_weight = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)
@@ -282,13 +281,11 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
     end
     end
     end
-    println("test2")
         # Correct corner solutions above
         H_weight[H_ind.==n_a_fine] .= 0
         H_ind[H_ind.==n_a_fine]    .= n_a_fine-1
         # Check bounds for weights
         H_weight = min.(1,max.(0,H_weight))
-    println("test3")
     # Loop for updating histogram
     H_dist = 1
     for i_H=1:N_H 
