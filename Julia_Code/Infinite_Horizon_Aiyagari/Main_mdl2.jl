@@ -52,7 +52,7 @@ println(" ")
         σ_ζ::Float64 = sqrt(0.086) ; # Standard deviation of interest rate innovation
         # Model prices (partial equilibrium) and aggregates
         r::Float64 = 0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
-        w::Float64 = 53.624 ; # U.S. (2019) - thousand $
+        w::Float64 = 3.624 ; # U.S. (2019) - thousand $
         # Borrowing constraint
         a_min::Float64 = 0; # Borrowing constraint
         # VFI Parameters
@@ -81,7 +81,7 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Capital Grid
-        a_max::Float64  = 50                         # Max node of a_grid
+        a_max::Float64  = 100                        # Max node of a_grid
         θ_a::Float64    = 2.5                        # Curvature of a_grid
         n_a::Int64      = 200                        # Size of a_grid
         n_a_fine::Int64 = 1000                        # Size of fine grid for interpolation and distribution
@@ -292,13 +292,13 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         println("   Histogram Loop: iter=$i_H, dist=$H_dist")
         # Update histogram
         Γ = zeros(n_a_fine,n_ϵ,n_ζ)
+        for i_ζ=1:n_ζ # Current ζ
         for i_ϵ=1:n_ϵ # Current ϵ
         for i_a=1:n_a_fine # Current a
-        for i_ζ=1:n_ζ # Current ζ
             i_ap = H_ind[i_a,i_ϵ,i_ζ]
             ω_ap = H_weight[i_a,i_ϵ,i_ζ]
-            for i_ϵp=1:n_ϵ # Future ϵ
             for i_ζp=1:n_ζ # Future ζ
+            for i_ϵp=1:n_ϵ # Future ϵ
                 # Update is the product of probabilities by independence of F(ϵ) and F(ζ)
                 Γ[i_ap,i_ϵp,i_ζp]   = Γ[i_ap,i_ϵp,i_ζp]   +    ω_ap*MP_ϵ.Π[i_ϵ,i_ϵp]*MP_ζ.Π[i_ζ,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
                 Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + (1-ω_ap)*MP_ϵ.Π[i_ϵ,i_ϵp]*MP_ζ.Π[i_ζ,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]

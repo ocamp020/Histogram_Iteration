@@ -41,7 +41,7 @@ println(" ")
     # We can set default values for our parameters
     @with_kw struct Par 
         # Model Parameters
-        α::Float64 = 0.36 ; # Production function 
+        α::Float64 = 0.36 ; # Production function
         β::Float64 = 0.96 ; # Discount factor
         γ::Float64 = 2.0  ; # Relative risk aversion (utility) parameter
         δ::Float64 = 0.05 ; # Depreciation rate
