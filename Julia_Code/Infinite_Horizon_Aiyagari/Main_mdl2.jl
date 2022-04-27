@@ -10,12 +10,10 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-    cd()
-    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    #cd()
+    #cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
-    # cd("???")
-
-
+    cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
 Fig_Folder = "Figures"
@@ -54,7 +52,7 @@ println(" ")
     @with_kw struct Par
         # Model Parameters
         α::Float64 = 0.36 ; # Production function
-        β::Float64 = 0.96 ; # Discount factor
+        β::Float64 = 0.90 ; # Discount factor
         γ::Float64 = 2.0  ; # Relative risk aversion (utility) parameter
         δ::Float64 = 0.05 ; # Depreciation rate
         ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
@@ -67,10 +65,10 @@ println(" ")
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # VFI Parameters
-        max_iter::Int64   = 100000; # Maximum number of iterations
-        dist_tol::Float64 = 1E-6  ; # Tolerance for distance
-        η                 = 0.0   ; # Dampen factor
-        # Howard's Policy Iterations
+        max_iter::Int64     = 100000; # Maximum number of iterations
+        dist_tol::Float64   = 1E-6  ; # Tolerance for distance
+        dist_tol_Δ::Float64 = 1E-10 ; # Tolerance for change in distance 
+        η                   = 0.0   ; # Dampen factor
         # Histogram iteration parameters
         Hist_max_iter     = 10000 ; # Maximum number of iterations
         Hist_tol          = 1E-5  ; # Tolerance for distance
@@ -89,18 +87,18 @@ p = Par();
         p::Par = Par() # Model parameters in their own structure
         # Capital Grid
         a_max::Float64  = 1000                       # Max node of a_grid
-        θ_a::Float64    = 2.5                        # Curvature of a_grid
+        θ_a::Float64    = 1.5                        # Curvature of a_grid
         n_a::Int64      = 200                        # Size of a_grid
         n_a_fine::Int64 = 1000                       # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         # Interest rate process
-        n_ζ       = 3                                # Size of ζ_grid
+        n_ζ       = 5                                # Size of ζ_grid
         MP_ζ      = Rouwenhorst95(p.ρ_ζ,p.σ_ζ,n_ζ)   # Markov Process for ζ
         ζ_ref     = n_ζ/sum(exp.(MP_ζ.grid))         # Reference level for interest rate
         ζ_grid    = ζ_ref*exp.(MP_ζ.grid)            # Grid in levels
         # Productivity process
-        n_ϵ       = 3                                # Size of ϵ_grid
+        n_ϵ       = 15                               # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)   # Markov Process for ϵ
         ϵ_ref     = n_ϵ/sum(exp.(MP_ϵ.grid))         # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)            # Grid in levels
@@ -121,6 +119,8 @@ p = Par();
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)            # Index for discretization of savings choice 
         H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
+        # Misc
+        method = Array{Int64}(undef,1) 
     end
 
 M = Model();
@@ -152,30 +152,42 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
     # Unpack model structure
     @unpack p, n_ϵ, n_ζ, n_a, n_a_fine, θ_a, a_grid, a_grid_fine,method = M
     # PFI paramters
-    @unpack max_iter, dist_tol, r, w, PFI_η = p
+    @unpack max_iter, dist_tol, dist_tol_Δ, r, w, η = p
     # Initialize variables for loop
     if G_ap_old==nothing
         G_ap_old  = (r*M.ζ_mat.+1).*M.a_mat
     end
-    G_dist = 1              ; # Initialize distance
+    G_dist_new = 100             ; # Initialize distance
+    G_dist_old = 1               ; # Initialize distance
+    G_dist_chage = 1             ; # Initialize change in distance
     println(" ")
     println("------------------------")
     println("PFI - n_ϵ=$n_ϵ, n_ζ=$n_ζ, n_a=$n_a - θ_a=$θ_a - r=$r")
     for iter=1:max_iter
+        # Update old distance and iterations
+        G_dist_old = G_dist_new
         # Update value function
         G_ap_new, G_c = T(Model(M,G_ap=copy(G_ap_old)))
-        # Update distance and iterations
-        G_dist = sqrt(norm(G_ap_new-G_ap_old,2))
+        # Update new distance and iterations
+        G_dist_new = sqrt(norm(G_ap_new-G_ap_old,2))
+        # Update change in distance
+        G_dist_change = abs(G_dist_new-G_dist_old)
         # Update old function
-        G_ap_old  = (1-PFI_η)*G_ap_new .+ PFI_η*G_ap_old
+        G_ap_old  = (1-η)*G_ap_new .+ η*G_ap_old
+        # Update change in convergence criteria
         # Report progress
         if mod(iter,250)==0
-            println("   PFI Loop: iter=$iter, dist=",G_dist)
+            println("   PFI Loop: iter=$iter, dist=",G_dist_new)
         end
         # Check convergence and return results
-        if G_dist<=dist_tol
+        if G_dist_new<=dist_tol || G_dist_change<=dist_tol_Δ # *(1+abs(G_dist_new))
             println("PFI - n_ϵ=$n_ϵ, n_ζ=$n_ζ, n_a=$n_a - θ_a=$θ_a - r=$r")
-            println("Iterations = $iter and Distance = ",G_dist)
+            if G_dist_new<=dist_tol
+            println("Distance converged: Iterations = $iter, Distance = ",G_dist_new)
+            elseif G_dist_change<=dist_tol_Δ #*(1+abs(G_dist_new))
+            println("Distance fluctuating: Iterations = $iter, Distance = ",G_dist_new)
+            println("Change in distance converged: Iterations = $iter, Change in Distance =", G_dist_change)
+            end
             println("------------------------")
             println(" ")
             # Check borrowing constraint
@@ -283,7 +295,7 @@ end
 #-----------------------------------------------------------
 # Histogram method
 function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
-    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, G_ap_fine, H_ind, H_weight = M
+    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, G_ap_fine = M
     @unpack a_min, Hist_max_iter, Hist_tol, Hist_η = p
 
     println("\n--------------------------------\nBegining Histogram Method with Loops")
@@ -376,27 +388,32 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
     end
 end
 
-# Graphs and Stats
-function  Aiyagari_Graph(M::Model)
-    gr()
-    # Capital Policy Function
-        plt = plot(title="Policy Function - a' - n_a=$(M.n_a) - θ_a=$(M.θ_a)",legend=:bottomright,foreground_color_legend = nothing,background_color_legend = nothing)
-        plot!(M.a_grid_fine,M.a_grid_fine,lw=1,linecolor=RGB(0.6,0.6,0.6),label=nothing)
-        # Different values of ϵ and ζ
-        m_ϵ = [1,convert(Int64,round(M.n_ϵ/2)),M.n_ϵ]
-        m_ζ = [1,convert(Int64,round(M.n_ζ/2)),M.n_ζ]
-        for i_ϵ=2:2
-        plot!(M.a_grid,M.G_ap[:,m_ϵ[i_ϵ],m_ζ[2]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ϵ[$i_ϵ])")
-        plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[i_ϵ],m_ζ[2]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
-        end
-        # for i_ζ=1:3
-        # plot!(M.a_grid,M.G_ap[:,m_ϵ[2],m_ζ[i_ζ]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ζ[$i_ζ])")
-        # plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[2],m_ζ[i_ζ]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
-        # end
-        xlabel!("Assets")
-        ylabel!("Assets")
-        savefig("Figures/Aiyagari_G_ap.pdf")
-end
+# # Graphs and Stats
+# function  Aiyagari_Graph(M::Model)
+#     gr()
+#     # Capital Policy Function
+#         plt = plot(title="Policy Function - a' - n_a=$(M.n_a) - θ_a=$(M.θ_a)",legend=:bottomright,foreground_color_legend = nothing,background_color_legend = nothing)
+#         plot!(M.a_grid_fine,M.a_grid_fine,lw=1,linecolor=RGB(0.6,0.6,0.6),label=nothing)
+#         # Savings in level
+#         # Different values of ϵ and ζ
+#         m_ϵ = [1,convert(Int64,round(M.n_ϵ/2)),M.n_ϵ]
+#         m_ζ = [1,convert(Int64,round(M.n_ζ/2)),M.n_ζ]
+#         for i_ϵ=2:2
+#         plot!(M.a_grid,M.G_ap[:,m_ϵ[i_ϵ],m_ζ[2]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ϵ[i_ϵ])")
+#         plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[i_ϵ],m_ζ[2]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
+#         end
+#         # for i_ζ=1:3
+#         # plot!(M.a_grid,M.G_ap[:,m_ϵ[2],m_ζ[i_ζ]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ζ[$i_ζ])")
+#         # plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[2],m_ζ[i_ζ]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
+#         # end
+#         xlabel!("Assets")
+#         ylabel!("Assets")
+#         # Savings rate 
+
+
+#         # Wealth distribution
+#         savefig("Figures/Aiyagari_G_ap.pdf")
+# end
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
@@ -410,7 +427,7 @@ function Aiyagari_Equilibrium(M_in::Model)
     #M  = Histogram_Method_Loop(M)
 
     # Graphs
-    Aiyagari_Graph(M_in)
+    #Aiyagari_Graph(M_in)
 
     M_in  = Histogram_Method_Loop(M_in) ;
 
@@ -419,13 +436,8 @@ end
 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
 
-@time M_Aiyagari = Aiyagari_Equilibrium(Model()); 
+@time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1));
 
-## Check time with for loop in T for PFI  
-# kronecker product does better
-
-## Add stop for PFI when step size is small 
-# distance between convergence criterias
 println("===============================================\n")
 
 
@@ -440,29 +452,37 @@ println("===============================================\n")
     xlabel!("Assets (thousands of dollars)",labelsize=18)
     savefig("./"*Fig_Folder*"/Distribution_Wealth.pdf")
 
-## Plot Saving Functions 
+## Plot Saving Functions (median labor efficiency and interest rate)
+    med_ϵ = convert(Int64,round(M.n_ϵ/2));
+    med_ζ = convert(Int64,round(M.n_ζ/2));
     gr() 
     plot(M_Aiyagari.a_grid_fine,M_Aiyagari.a_grid_fine,w=1,linecolor=:gray70,label=nothing,aspect_ratio=1,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
-    plot!(M_Aiyagari.a_grid_fine,M_Aiyagari.G_ap_fine[:,2,2],w=2,linecolor=:cornflowerblue,label=nothing,aspect_ratio=1)
+    plot!(M_Aiyagari.a_grid_fine,M_Aiyagari.G_ap_fine[:,med_ϵ,med_ζ],w=2,linecolor=:cornflowerblue,label=nothing,aspect_ratio=1)
     xlabel!("Assets (thousands of dollars)",labelsize=18)
     ylabel!("Assets (thousands of dollars)",labelsize=18)
     savefig("./"*Fig_Folder*"/Policy_Function_Savings_Level.pdf")
 
     gr()
     hline( [0] ,c=:gray70  ,w=1,label=nothing) 
-    plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,2,2]./M_Aiyagari.a_grid_fine[25:end].-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
+    plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine[25:end].-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
+    #plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine[25:end]),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
     xlabel!("Assets (thousands of dollars)",labelsize=18)
     ylabel!("Saving Rate (%)",labelsize=18)
     savefig("./"*Fig_Folder*"/Policy_Function_Savings_Rate.pdf")
 
 ## Plots of policy function of assets (Choose high-median-low values of ϵ and ζ)
 
-
 ## Check time with for loop in T for PFI
 
 ## Add stop for PFI when step size is small 
 
 ## Verify moments of returns and income (expected values)
+
+## Check time with for loop in T for PFI  
+# kronecker product does better
+
+## Add stop for PFI when step size is small 
+# distance between convergence criterias
 
 
 
