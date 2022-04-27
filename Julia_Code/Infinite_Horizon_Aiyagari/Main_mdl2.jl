@@ -58,15 +58,15 @@ println(" ")
         a_min::Float64 = 0; # Borrowing constraint
         # VFI Parameters
         max_iter::Int64   = 100000; # Maximum number of iterations
-        dist_tol::Float64 = 1E-6  ; # Tolerance for distance
-        η                 = 0.3   ; # Dampen factor
+        dist_tol::Float64 = 1E-5  ; # Tolerance for distance
+        PFI_η             = 0.2   ; # Dampen factor
         # Howard's Policy Iterations
         H_tol::Float64    = 1E-9  ; # Tolerance for policy function iteration
         N_H::Int64        = 20    ; # Maximum number of policy iterations
         # Histogram iteration parameters
         Hist_max_iter     = 10000 ;
         Hist_tol          = 1E-6  ;
-        Hist_η            = 0.3   ;
+        Hist_η            = 0.5   ;
         # Equilibrium iteration parameters
         N_eq              = 1000  ;
         tol_eq            = 1E-7  ;
@@ -83,7 +83,7 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Capital Grid
-        a_max::Float64  = 10000                      # Max node of a_grid
+        a_max::Float64  = 1000                      # Max node of a_grid
         θ_a::Float64    = 2.5                        # Curvature of a_grid
         n_a::Int64      = 200                        # Size of a_grid
         n_a_fine::Int64 = 1000                       # Size of fine grid for interpolation and distribution
@@ -113,8 +113,12 @@ p = Par();
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
         # Distribution
         Γ         = 1/(n_ϵ*n_a_fine*n_ζ)*ones(n_a_fine,n_ϵ,n_ζ) # Distribution (initiliazed to uniform)
+        H_ind    = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ) 
+        H_weight = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)
         # Solver
         Solver    = "PFI"
+        # Misc
+        method = Array{Int64}(undef,1) 
     end
 
 M = Model();
@@ -144,9 +148,9 @@ end
 # Policy function: PFI Fixed Point 
 function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
     # Unpack model structure
-    @unpack p, n_ϵ, n_ζ, n_a, n_a_fine, θ_a, a_grid, a_grid_fine = M
+    @unpack p, n_ϵ, n_ζ, n_a, n_a_fine, θ_a, a_grid, a_grid_fine,method = M
     # PFI paramters
-    @unpack max_iter, dist_tol, r, w, η = p
+    @unpack max_iter, dist_tol, r, w, PFI_η = p
     # Initialize variables for loop
     if G_ap_old==nothing
         G_ap_old  = (r*M.ζ_mat.+1).*M.a_mat
@@ -161,7 +165,7 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
         # Update distance and iterations
         G_dist = sqrt(norm(G_ap_new-G_ap_old,2))
         # Update old function
-        G_ap_old  = (1-η)*G_ap_new .+ η*G_ap_old
+        G_ap_old  = (1-PFI_η)*G_ap_new .+ PFI_η*G_ap_old
         # Report progress
         if mod(iter,250)==0
             println("   PFI Loop: iter=$iter, dist=",G_dist)
@@ -200,34 +204,36 @@ end
 #-----------------------------------------------------------
 # Bellman operator - EGM - Iterate on Policy Functions
 function T_EGM_G(M::Model)
-    @unpack p, n_ζ, n_ϵ, MP_ϵ, MP_ζ, n_a, G_ap = M
+    @unpack p, n_ζ, n_ϵ, MP_ϵ, MP_ζ, n_a, G_ap, method = M
     @unpack β, a_min, r, w = p
-    # Kronecker product of  Π_ζ ⊗ Π_ϵ
-    Π_joint = kronecker(MP_ζ.Π, MP_ϵ.Π)
-    
     # Define RHS of Euler equation for each (a',ϵ,ζ)
     # First dim is tomorrow's a in a fixed grid, second dim is present ϵ, third dim is present ζ
-    Euler_RHS = β*Π_joint*(reshape((r*M.ζ_mat.+1).*d_utility( (r*M.ζ_mat.+1).*M.a_mat + w*M.ϵ_mat - G_ap , p ),(n_a,n_ϵ*n_ζ))')
-    Euler_RHS = reshape(Euler_RHS',(n_a,n_ϵ,n_ζ))
-        # # Loop calculation  
-        # aux_1          = (r*M.ζ_mat.+1).*d_utility( (r*M.ζ_mat.+1).*M.a_mat + w*M.ϵ_mat - G_ap , p );
-        # aux_2          = Array{Float64}(undef,n_ϵ,n_ζ); 
-        # Euler_RHS_Loop = Array{Float64}(undef,n_a,n_ϵ,n_ζ);
-        # for i_ζ=1:n_ζ # Today's ζ
-        #     Pr_ζp = MP_ζ.Π[i_ζ,:];
-        # for i_ϵ=1:n_ϵ # Today's ϵ
-        #     Pr_ϵp = MP_ϵ.Π[i_ϵ,:];
-        # for i_ap=1:n_a # Tomorrow's Assets 
-        #     for i_ζp=1:n_ζ
-        #     for i_ϵp=1:n_ϵ
-        #         aux_2[i_ϵp,i_ζp] = β*aux_1[i_ap,i_ϵp,i_ζp]*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp]
-        #     end  
-        #     end 
-        #     Euler_RHS_Loop[i_ap,i_ϵ,i_ζ] = sum(aux_2[:,:])
-        # end 
-        # end 
-        # end
-        # println("Maximum = ",maximum(abs.(Euler_RHS-Euler_RHS_Loop)))
+    if method == 1
+        # Kronecker product of  Π_ζ ⊗ Π_ϵ
+        Π_joint = kronecker(MP_ζ.Π, MP_ϵ.Π)
+        Euler_RHS = β*Π_joint*(reshape((r*M.ζ_mat.+1).*d_utility( (r*M.ζ_mat.+1).*M.a_mat + w*M.ϵ_mat - G_ap , p ),(n_a,n_ϵ*n_ζ))')
+        Euler_RHS = reshape(Euler_RHS',(n_a,n_ϵ,n_ζ))
+    elseif method == 2
+        # Loop calculation  
+        aux_1          = (r*M.ζ_mat.+1).*d_utility( (r*M.ζ_mat.+1).*M.a_mat + w*M.ϵ_mat - G_ap , p );
+        aux_2          = Array{Float64}(undef,n_ϵ,n_ζ); 
+        Euler_RHS = Array{Float64}(undef,n_a,n_ϵ,n_ζ); 
+        for i_ζ=1:n_ζ # Today's ζ
+            Pr_ζp = MP_ζ.Π[i_ζ,:] ;
+        for i_ϵ=1:n_ϵ # Today's ϵ
+            Pr_ϵp = MP_ϵ.Π[i_ϵ,:] ;
+        for i_ap=1:n_a # Tomorrow's Assets 
+            for i_ζp=1:n_ζ
+            for i_ϵp=1:n_ϵ
+                aux_2[i_ϵp,i_ζp] = β*aux_1[i_ap,i_ϵp,i_ζp]*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp]
+            end  
+            end 
+            Euler_RHS[i_ap,i_ϵ,i_ζ] = sum(aux_2[:,:])
+        end 
+        end 
+        end
+    end
+    #println("Maximum = ",maximum(abs.(Euler_RHS-Euler_RHS_Loop)))
     # Check Monotonicity
     if any( Euler_RHS.<0 )
         error("RHS must be monotone for EGM to work")
@@ -275,7 +281,7 @@ end
 #-----------------------------------------------------------
 # Histogram method
 function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
-    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, G_ap_fine = M
+    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, G_ap_fine, H_ind, H_weight = M
     @unpack a_min, Hist_max_iter, Hist_tol, Hist_η = p
 
     println("\n--------------------------------\nBegining Histogram Method with Loops")
@@ -290,8 +296,6 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         Γ_0 = M.Γ
     end
     # Discretize distribution
-    H_ind    = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)
-    H_weight = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)
     a_max    = maximum(a_grid_fine)
     for i_ϵ=1:n_ϵ
     for i_a=1:n_a_fine
@@ -339,10 +343,32 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         # Check convergence
         if H_dist<Hist_tol
             println("Histogram iteartion converged in iteration $i_H. H_dist=$H_dist\n--------------------------------\n")
-            M = Model(M; Γ=Γ)
+            M = Model(M; Γ=Γ, H_ind=H_ind,H_weight=H_weight)
             return M
         end
     end
+end
+
+# Graphs and Stats
+function  Aiyagari_Graph(M::Model)
+    gr()
+    # Capital Policy Function
+        plt = plot(title="Policy Function - a' - n_a=$(M.n_a) - θ_a=$(M.θ_a)",legend=:bottomright,foreground_color_legend = nothing,background_color_legend = nothing)
+        plot!(M.a_grid_fine,M.a_grid_fine,lw=1,linecolor=RGB(0.6,0.6,0.6),label=nothing)
+        # Different values of ϵ and ζ
+        m_ϵ = [1,convert(Int64,round(M.n_ϵ/2)),M.n_ϵ]
+        m_ζ = [1,convert(Int64,round(M.n_ζ/2)),M.n_ζ]
+        for i_ϵ=2:2
+        plot!(M.a_grid,M.G_ap[:,m_ϵ[i_ϵ],m_ζ[2]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ϵ[$i_ϵ])")
+        plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[i_ϵ],m_ζ[2]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
+        end
+        # for i_ζ=1:3
+        # plot!(M.a_grid,M.G_ap[:,m_ϵ[2],m_ζ[i_ζ]],linetype=:scatter,ms=1.5,label="G_ap(ϵ_$m_ζ[$i_ζ])")
+        # plot!(M.a_grid_fine,M.G_ap_fine[:,m_ϵ[2],m_ζ[i_ζ]],linewidth=1,linestyle=(:dash),linecolor=RGB(0.4,0.4,0.4),label=nothing)
+        # end
+        xlabel!("Assets")
+        ylabel!("Assets")
+        savefig("Figures/Aiyagari_G_ap.pdf")
 end
 
 #-----------------------------------------------------------
@@ -358,7 +384,10 @@ function Aiyagari_Equilibrium(M::Model)
     end
 
     # Compute Distribution
-    M  = Histogram_Method_Loop(M)
+    #M  = Histogram_Method_Loop(M)
+
+    # Graphs
+    Aiyagari_Graph(M)
 
     # Return Model
     return M
@@ -368,13 +397,14 @@ function Aiyagari_Equilibrium(M::Model)
 end
 
 println("===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
-@time M_Aiyagari = Aiyagari_Equilibrium(Model(Solver="PFI")); 
+@time M_Aiyagari = Aiyagari_Equilibrium(Model(Solver="PFI",method=1)); 
 
 
-## Check time with for loop in T for PFI
+## Check time with for loop in T for PFI  
+# kronecker product does better
 
 ## Add stop for PFI when step size is small 
-
+# distance between convergence criterias
 
 ## Plots of policy function of assets (Choose high-median-low values of ϵ and ζ)
 
