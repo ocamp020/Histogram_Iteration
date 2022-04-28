@@ -10,10 +10,10 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-    #cd()
-    #cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    cd()
+    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
-    cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
 Fig_Folder = "Figures"
@@ -65,13 +65,13 @@ println(" ")
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # VFI Parameters
-        max_iter::Int64     = 100000; # Maximum number of iterations
+        max_iter::Int64     = 10000 ; # Maximum number of iterations
         dist_tol::Float64   = 1E-6  ; # Tolerance for distance
-        dist_tol_Δ::Float64 = 1E-10 ; # Tolerance for change in distance 
+        dist_tol_Δ::Float64 = 1E-11 ; # Tolerance for change in distance 
         η                   = 0.0   ; # Dampen factor
         # Histogram iteration parameters
-        Hist_max_iter     = 10000 ; # Maximum number of iterations
-        Hist_tol          = 1E-5  ; # Tolerance for distance
+        Hist_max_iter     = 1000  ; # Maximum number of iterations
+        Hist_tol          = 1E-6  ; # Tolerance for distance
         Hist_η            = 0.0   ; # Dampen factor
         # Minimum consumption for numerical optimization
         c_min::Float64    = 1E-16
@@ -86,22 +86,23 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Capital Grid
-        a_max::Float64  = 1000                       # Max node of a_grid
+        a_max::Float64  = 10000                      # Max node of a_grid
         θ_a::Float64    = 1.5                        # Curvature of a_grid
+        θ_a_f::Float64  = 1.5                        # Curvature of a_grid_fine
         n_a::Int64      = 200                        # Size of a_grid
-        n_a_fine::Int64 = 1000                       # Size of fine grid for interpolation and distribution
-        a_grid          = Make_Grid(n_a     ,θ_a,p.a_min,a_max,"Poly")  # a_grid for model solution
-        a_grid_fine     = Make_Grid(n_a_fine,θ_a,p.a_min,a_max,"Poly")  # Fine grid for interpolation
+        n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
+        a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
+        a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         # Interest rate process
-        n_ζ       = 5                                # Size of ζ_grid
-        MP_ζ      = Rouwenhorst95(p.ρ_ζ,p.σ_ζ,n_ζ)   # Markov Process for ζ
-        ζ_ref     = n_ζ/sum(exp.(MP_ζ.grid))         # Reference level for interest rate
-        ζ_grid    = ζ_ref*exp.(MP_ζ.grid)            # Grid in levels
+        n_ζ       = 5                                  # Size of ζ_grid
+        MP_ζ      = Rouwenhorst95(p.ρ_ζ,p.σ_ζ,n_ζ)     # Markov Process for ζ
+        ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
+        ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
         # Productivity process
-        n_ϵ       = 15                               # Size of ϵ_grid
-        MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)   # Markov Process for ϵ
-        ϵ_ref     = n_ϵ/sum(exp.(MP_ϵ.grid))         # Reference level for labor efficiency 
-        ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)            # Grid in levels
+        n_ϵ       = 11                                 # Size of ϵ_grid
+        MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
+        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF) # Reference level for labor efficiency 
+        ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels
         # State matrices
         a_mat     = repeat(a_grid,1,n_ϵ,n_ζ)
         a_mat_fine= repeat(a_grid_fine,1,n_ϵ,n_ζ)
@@ -180,11 +181,11 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
             println("   PFI Loop: iter=$iter, dist=",G_dist_new)
         end
         # Check convergence and return results
-        if G_dist_new<=dist_tol || G_dist_change<=dist_tol_Δ # *(1+abs(G_dist_new))
+        if G_dist_new<=dist_tol ||  ((G_dist_change<=dist_tol_Δ)&&(G_dist_new<=dist_tol*10)) # *(1+abs(G_dist_new))
             println("PFI - n_ϵ=$n_ϵ, n_ζ=$n_ζ, n_a=$n_a - θ_a=$θ_a - r=$r")
             if G_dist_new<=dist_tol
             println("Distance converged: Iterations = $iter, Distance = ",G_dist_new)
-            elseif G_dist_change<=dist_tol_Δ #*(1+abs(G_dist_new))
+            elseif ((G_dist_change<=dist_tol_Δ)&&(G_dist_new<=dist_tol*10)) #*(1+abs(G_dist_new))
             println("Distance fluctuating: Iterations = $iter, Distance = ",G_dist_new)
             println("Change in distance converged: Iterations = $iter, Change in Distance =", G_dist_change)
             end
@@ -295,7 +296,7 @@ end
 #-----------------------------------------------------------
 # Histogram method
 function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
-    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, G_ap_fine = M
+    @unpack p, n_ϵ, n_ζ, MP_ϵ, MP_ζ, n_a_fine, a_grid_fine, θ_a, θ_a_f, G_ap_fine = M
     @unpack a_min, Hist_max_iter, Hist_tol, Hist_η = p
 
     println("\n--------------------------------\nBegining Histogram Method with Loops")
@@ -330,7 +331,7 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
             H_ind[i_a,i_ϵ,i_ζ] = 1
             ω_lo               = 1 
         else
-            H_ind[i_a,i_ϵ,i_ζ] = Grid_Inv(G_ap_fine[i_a,i_ϵ,i_ζ],n_a_fine,θ_a,a_min,a_max)
+            H_ind[i_a,i_ϵ,i_ζ] = Grid_Inv(G_ap_fine[i_a,i_ϵ,i_ζ],n_a_fine,θ_a_f,a_min,a_max)
             ω_lo               = min(1,max(0,(G_ap_fine[i_a,i_ϵ,i_ζ]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])/(a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]+1]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])))
         end
 
@@ -442,51 +443,142 @@ println("===============================================\n")
 
 
 ## Define marginal distributions 
-    Γ_a = dropdims( sum( M_Aiyagari.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
-    Γ_ϵ = dropdims( sum( M_Aiyagari.Γ , dims=(1,3) ) , dims=(1,3) ) ; # Labor Efficiency 
-    Γ_ζ = dropdims( sum( M_Aiyagari.Γ , dims=(1,2) ) , dims=(1,2) ) ; # Returns 
+Γ_a = dropdims( sum( M_Aiyagari.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
+Γ_ϵ = dropdims( sum( M_Aiyagari.Γ , dims=(1,3) ) , dims=(1,3) ) ; # Labor Efficiency 
+Γ_ζ = dropdims( sum( M_Aiyagari.Γ , dims=(1,2) ) , dims=(1,2) ) ; # Returns 
+
+## Print income and return grids 
+println("===============================================")
+    ## Labor income 
+    println("\n Income Grid and Probability")
+    println("   Node - Value - PDF - Γ")
+    aux = [M_Aiyagari.ϵ_grid*p.w M_Aiyagari.MP_ϵ.PDF Γ_ϵ]
+    for i_ϵ=1:M_Aiyagari.n_ϵ
+        println("   $i_ϵ:  $(round.(aux[i_ϵ,:],digits=4))")
+    end 
+    println("\n    Expected value: $(round(aux[:,1]'*aux[:,2],digits=3)) Thousand Dollars")
+    println("    Expected value: $(round(aux[:,1]'*Γ_ϵ,digits=3)) Thousand Dollars\n")
+        # Plot Income Distribution
+        med_ϵ = convert(Int64,round(M.n_ϵ/2));
+        gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+        scatter( log.(M_Aiyagari.ϵ_grid*p.w) , 100*Γ_ϵ , marker=(:circle ,7,:cornflowerblue),label=nothing)
+        vline!( [log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)] ,c=:gray70  ,w=1,label=nothing)
+        annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.7,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
+        ylims!(0,ceil(maximum(100*Γ_ϵ/10))*10)
+        xlims!(log(0.1),log(10000)); xticks!(log.([0.1,1,10,100,1000,5000]),["\$100","\$1k","\$10k","\$100k","\$1m","\$5m"])
+        # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
+        title!("Labor Income Distribution",titlefont=14)
+        xlabel!("(log) Labor Income",labelsize=18)
+        savefig("./"*Fig_Folder*"/Distribution_Income.pdf")
+
+    ## Return 
+    println("\n Return Grid and Probability")
+    println("   Node - Value - PDF - Γ")
+    aux = [M_Aiyagari.ζ_grid*p.r*100 M_Aiyagari.MP_ζ.PDF Γ_ζ]
+    for i_ζ=1:M_Aiyagari.n_ζ
+        println("   $i_ζ:  $(round.(aux[i_ζ,:],digits=4))")
+    end 
+    println("\n    Expected value: $(round.(aux[:,1]'*aux[:,2],digits=4))% ")
+    println("    Expected value: $(round.(aux[:,1]'*Γ_ζ,digits=4))% \n")
+        # Plot Return Distribution
+        gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+        scatter( M_Aiyagari.ζ_grid*p.r*100 , 100*Γ_ζ , marker=(:circle,7,:cornflowerblue),label=nothing)
+        ylims!(0,ceil(maximum(100*Γ_ζ/10))*10)
+        xlims!(0,ceil(maximum(100*M_Aiyagari.ζ_grid*p.r/10))*10)
+        title!("Return Distribution",titlefont=14)
+        xlabel!("Percentage Points)",labelsize=18)
+        savefig("./"*Fig_Folder*"/Distribution_Return.pdf")
+println("===============================================\n")
+
+
+## Plot Grid and Fine Grid (Zoom at the bottom and the top)
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,ylims=(-0.25,1.25))
+    scatter( M_Aiyagari.a_grid     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing)
+    scatter!(M_Aiyagari.a_grid_fine,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing)
+    title!("Asset Grids",titlefont=14)
+    xlabel!("Assets (thousands of dollars)",labelsize=18)
+    yticks!([0,1],["Coarse","Fine"],tickfontsize=12)
+    savefig("./"*Fig_Folder*"/Asset_Grids.pdf")
+    
+    xlims!(0,10)
+    savefig("./"*Fig_Folder*"/Asset_Grids_Low.pdf")
+
+    xlims!(1000,M_Aiyagari.a_max)
+    savefig("./"*Fig_Folder*"/Asset_Grids_High.pdf")
+
+
+    # l = @layout [a{0.45h}  ; b{0.45w}  c{0.45w} ]
+    # # All the grid
+    # p1 = plot( 
+    #     scatter( M_Aiyagari.a_grid     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing),
+    #     scatter!(M_Aiyagari.a_grid_fine,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing),
+    #     title!("Asset Grids",titlefont=14),
+    #     xlabel!("Assets (thousands of dollars)",labelsize=18),
+    #     yticks!([0,1],["Coarse","Fine"],tickfontsize=12)
+    #     )
+    # # Zoom in to lower end of the grid  
+    # p2 = plot(
+    #     scatter( M_Aiyagari.a_grid     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing),
+    #     scatter!(M_Aiyagari.a_grid_fine,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing),
+    #     title!("Asset Grids",titlefont=14),
+    #     xlabel!("Assets (thousands of dollars)",labelsize=18),
+    #     yticks!([0,1],["Coarse","Fine"],tickfontsize=12),
+    #     xlims!(0,1000)
+    #     )
+    # p3 = plot(
+    #     scatter( M_Aiyagari.a_grid     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing),
+    #     scatter!(M_Aiyagari.a_grid_fine,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing),
+    #     title!("Asset Grids",titlefont=14),
+    #     xlabel!("Assets (thousands of dollars)",labelsize=18),
+    #     yticks!([0,1],["Coarse","Fine"],tickfontsize=12),
+    #     xlims!(1000,M_Aiyagari.a_max)
+    # )
+    # #gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,ylims=(-0.25,1.25))
+    # plot(p1, p2, p3, layout = l)
+    # plot(p3)
 
 ## Plot asset distribution 
-    gr()
-    scatter(M_Aiyagari.a_grid_fine,Γ_a,marker=(:circle ,3,:cornflowerblue  ),markerstrokewidth=0,label=nothing)   
-    xlabel!("Assets (thousands of dollars)",labelsize=18)
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( log.(M_Aiyagari.a_grid_fine) , 100*Γ_a , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    xlabel!("Log Assets",labelsize=18)
+    title!("Asset Distribution",titlefont=14)
+    ylims!(0,ceil(maximum(100*Γ_a/1))*1)
+    xlims!(log(0.8),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
+    xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth.pdf")
+
+## Plot Pareto Tail (Above $1 Million)    
+
 
 ## Plot Saving Functions (median labor efficiency and interest rate)
     med_ϵ = convert(Int64,round(M.n_ϵ/2));
     med_ζ = convert(Int64,round(M.n_ζ/2));
-    gr() 
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot(M_Aiyagari.a_grid_fine,M_Aiyagari.a_grid_fine,w=1,linecolor=:gray70,label=nothing,aspect_ratio=1,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
     plot!(M_Aiyagari.a_grid_fine,M_Aiyagari.G_ap_fine[:,med_ϵ,med_ζ],w=2,linecolor=:cornflowerblue,label=nothing,aspect_ratio=1)
+    title!("Savings",titlefont=14)
     xlabel!("Assets (thousands of dollars)",labelsize=18)
     ylabel!("Assets (thousands of dollars)",labelsize=18)
+    xlims!(0,M_Aiyagari.a_max)
+    ylims!(0,M_Aiyagari.a_max)
     savefig("./"*Fig_Folder*"/Policy_Function_Savings_Level.pdf")
 
-    gr()
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     hline( [0] ,c=:gray70  ,w=1,label=nothing) 
-    plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine[25:end].-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
+    plot!(log.(M_Aiyagari.a_grid_fine) , 100*(M_Aiyagari.G_ap_fine[:,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine.-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
     #plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine[25:end]),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
-    xlabel!("Assets (thousands of dollars)",labelsize=18)
+    title!("Savings Rate",titlefont=14)
+    xlabel!("(log) Assets",labelsize=18)
     ylabel!("Saving Rate (%)",labelsize=18)
+    xlims!(log(0.8),log(M_Aiyagari.a_max)); xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
+    ylims!(-15,50)
     savefig("./"*Fig_Folder*"/Policy_Function_Savings_Rate.pdf")
 
-## Plots of policy function of assets (Choose high-median-low values of ϵ and ζ)
 
-## Check time with for loop in T for PFI
-
-## Add stop for PFI when step size is small 
-
-## Verify moments of returns and income (expected values)
-
-## Check time with for loop in T for PFI  
-# kronecker product does better
-
-## Add stop for PFI when step size is small 
-# distance between convergence criterias
+## Euler Errors
 
 
 
-## [Optional Check] Euler Errors
 
 
 
