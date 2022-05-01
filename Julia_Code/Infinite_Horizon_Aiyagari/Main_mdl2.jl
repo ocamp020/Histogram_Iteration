@@ -70,7 +70,7 @@ println(" ")
         max_iter::Int64     = 10000 ; # Maximum number of iterations
         dist_tol::Float64   = 1E-6  ; # Tolerance for distance
         dist_tol_Δ::Float64 = 1E-11 ; # Tolerance for change in distance 
-        η                   = 0.0   ; # Dampen factor
+        η                   = 0.1   ; # Dampen factor
         # Histogram iteration parameters
         Hist_max_iter     = 1000  ; # Maximum number of iterations
         Hist_tol          = 1E-6  ; # Tolerance for distance
@@ -89,8 +89,8 @@ p = Par();
         p::Par = Par() # Model parameters in their own structure
         # Capital Grid
         a_max::Float64  = 10000                      # Max node of a_grid
-        θ_a::Float64    = 1.5                        # Curvature of a_grid
-        θ_a_f::Float64  = 1.5                        # Curvature of a_grid_fine
+        θ_a::Float64    = 2.5                        # Curvature of a_grid
+        θ_a_f::Float64  = 2.2                        # Curvature of a_grid_fine
         n_a::Int64      = 200                        # Size of a_grid
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
@@ -98,19 +98,21 @@ p = Par();
         # Interest rate process
         n_ζ       = 5                                  # Size of ζ_grid
         σ_ζ       = SigmaMatchR95(p.r,p.ρ_ζ,p.σ_r,n_ζ) # Calculate σ_ζ based on σ_r
-        MP_ζ      = Rouwenhorst95(p.ρ_ζ,σ_ζ,n_ζ)     # Markov Process for ζ
+        MP_ζ      = Rouwenhorst95(p.ρ_ζ,σ_ζ,n_ζ)       # Markov Process for ζ
         ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
         ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
         # Productivity process
         n_ϵ       = 11                                 # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
-        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF) # Reference level for labor efficiency 
+        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels
         # State matrices
         a_mat     = repeat(a_grid,1,n_ϵ,n_ζ)
-        a_mat_fine= repeat(a_grid_fine,1,n_ϵ,n_ζ)
         ϵ_mat     = repeat(ϵ_grid',n_a,1,n_ζ)
         ζ_mat     = repeat(reshape(ζ_grid,(1,1,n_ζ)),n_a,n_ϵ,1)
+        a_mat_fine= repeat(a_grid_fine,1,n_ϵ,n_ζ)
+        ϵ_mat_fine= repeat(ϵ_grid',n_a_fine,1,n_ζ)
+        ζ_mat_fine= repeat(reshape(ζ_grid,(1,1,n_ζ)),n_a_fine,n_ϵ,1)
         # Value and policy functions
         V         = Array{Float64}(undef,n_a,n_ϵ,n_ζ)       # Value Function
         G_ap      = Array{Float64}(undef,n_a,n_ϵ,n_ζ)       # Policy Function for capital
@@ -460,19 +462,8 @@ println("===============================================")
         println("   $i_ϵ:  $(round.(aux[i_ϵ,:],digits=4))")
     end 
     println("\n    Expected value: $(round(aux[:,1]'*aux[:,2],digits=3)) Thousand Dollars")
-    println("    Expected value: $(round(aux[:,1]'*Γ_ϵ,digits=3)) Thousand Dollars\n")
-        # Plot Income Distribution
-        med_ϵ = convert(Int64,round(M.n_ϵ/2));
-        gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-        scatter( log.(M_Aiyagari.ϵ_grid*p.w) , 100*Γ_ϵ , marker=(:circle ,7,:cornflowerblue),label=nothing)
-        vline!( [log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)] ,c=:gray70  ,w=1,label=nothing)
-        annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.7,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
-        ylims!(0,ceil(maximum(100*Γ_ϵ/10))*10)
-        xlims!(log(0.1),log(10000)); xticks!(log.([0.1,1,10,100,1000,5000]),["\$100","\$1k","\$10k","\$100k","\$1m","\$5m"])
-        # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
-        title!("Labor Income Distribution",titlefont=14)
-        xlabel!("(log) Labor Income",labelsize=18)
-        savefig("./"*Fig_Folder*"/Distribution_Income.pdf")
+    println("    Expected value: $(round(aux[:,1]'*Γ_ϵ,digits=3)) Thousand Dollars")
+    println("    Standard Deviation: $(round(sqrt( ((aux[:,1] .- p.w).^2)'*Γ_ϵ ) , digits=3)) Thousand Dollars \n")
 
     ## Return 
     println("\n Return Grid and Probability")
@@ -481,16 +472,27 @@ println("===============================================")
     for i_ζ=1:M_Aiyagari.n_ζ
         println("   $i_ζ:  $(round.(aux[i_ζ,:],digits=4))")
     end 
-    println("\n    Expected value: $(round.(aux[:,1]'*aux[:,2],digits=4))% ")
-    println("    Expected value: $(round.(aux[:,1]'*Γ_ζ,digits=4))% \n")
-        # Plot Return Distribution
-        gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-        scatter( M_Aiyagari.ζ_grid*p.r*100 , 100*Γ_ζ , marker=(:circle,7,:cornflowerblue),label=nothing)
-        ylims!(0,ceil(maximum(100*Γ_ζ/10))*10)
-        xlims!(0,ceil(maximum(100*M_Aiyagari.ζ_grid*p.r/10))*10)
-        title!("Return Distribution",titlefont=14)
-        xlabel!("Percentage Points)",labelsize=18)
-        savefig("./"*Fig_Folder*"/Distribution_Return.pdf")
+    println("\n    Expected Value: $(round.(aux[:,1]'*aux[:,2],digits=4))% ")
+    println("    Expected Value: $(round.(aux[:,1]'*Γ_ζ,digits=4))% ")
+    println("    Standard Deviation: $(round(100*sqrt( ((aux[:,1]./100 .- p.r).^2)'*Γ_ζ ) , digits=4))% \n")
+    # Wealth-Weighted Returns 
+    println("\n Wealth Weighted Returns")
+    r_mat  = p.r*M_Aiyagari.ζ_mat_fine
+    aux_pr = M_Aiyagari.a_mat_fine.*M_Aiyagari.Γ; aux_pr = aux_pr./sum(aux_pr)
+    av_r_w = 100*sum(r_mat.*aux_pr)
+    sd_r_w = 100*sum( ((r_mat.-av_r_w/100).^2).*aux_pr )
+    println("    Expected Value: $(round.( av_r_w ,digits=4))% ")
+    println("    Standard Deviation: $(round.( sd_r_w ,digits=4))% \n")
+println("===============================================\n")
+
+## Asset Distribution Stats 
+println("===============================================")
+    println("\n Asset Distribution Stats")
+    av_a  = sum( M_Aiyagari.a_grid_fine.*Γ_a ) ;
+    sd_a  = sqrt( sum( ((M_Aiyagari.a_grid_fine[1:end] .- av_a).^2).*Γ_a )  ) ;
+    CDF_a = cumsum(Γ_a) ;
+    println("    Expected Value: \$$(round.( av_a ,digits=3))k ")
+    println("    Standard Deviation: \$$(round.( sd_a ,digits=3))k ")
 println("===============================================\n")
 
 
@@ -540,17 +542,51 @@ println("===============================================\n")
     # plot(p1, p2, p3, layout = l)
     # plot(p3)
 
+# Plot Income Distribution
+    med_ϵ = convert(Int64,round(M.n_ϵ/2));
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( log.(M_Aiyagari.ϵ_grid*p.w) , 100*Γ_ϵ , marker=(:circle ,7,:cornflowerblue),label=nothing)
+    vline!( [log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)] ,c=:gray70  ,w=1,label=nothing)
+    annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.7,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
+    ylims!(0,ceil(maximum(100*Γ_ϵ/10))*10)
+    xlims!(log(0.1),log(10000)); xticks!(log.([0.1,1,10,100,1000,5000]),["\$100","\$1k","\$10k","\$100k","\$1m","\$5m"])
+    # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
+    title!("Labor Income Distribution",titlefont=14)
+    xlabel!("(log) Labor Income",labelsize=18)
+    savefig("./"*Fig_Folder*"/Distribution_Income.pdf")
+
+# Plot Return Distribution
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( M_Aiyagari.ζ_grid*p.r*100 , 100*Γ_ζ , marker=(:circle,7,:cornflowerblue),label=nothing)
+    ylims!(0,ceil(maximum(100*Γ_ζ/10))*10)
+    xlims!(0,ceil(maximum(100*M_Aiyagari.ζ_grid*p.r/10))*10)
+    title!("Return Distribution",titlefont=14)
+    xlabel!("Percentage Points)",labelsize=18)
+    savefig("./"*Fig_Folder*"/Distribution_Return.pdf")
+
 ## Plot asset distribution 
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     scatter( log.(M_Aiyagari.a_grid_fine) , 100*Γ_a , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
     xlabel!("Log Assets",labelsize=18)
     title!("Asset Distribution",titlefont=14)
     ylims!(0,ceil(maximum(100*Γ_a/1))*1)
-    xlims!(log(0.8),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
+    xlims!(log(0.1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
     xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth.pdf")
 
-## Plot Pareto Tail (Above $1 Million)    
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( log.(M_Aiyagari.a_grid_fine) , 100*CDF_a , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    xlabel!("Log Assets",labelsize=18)
+    title!("Asset Distribution",titlefont=14)
+    ylims!(0,100)
+    xlims!(log(0.1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
+    xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
+    savefig("./"*Fig_Folder*"/Distribution_Wealth_CDF.pdf")
+
+## Plot Pareto Tail (Above $1 Million)   
+
+
+## Plot Lorenz Curve
 
 
 ## Plot Saving Functions (median labor efficiency and interest rate)
