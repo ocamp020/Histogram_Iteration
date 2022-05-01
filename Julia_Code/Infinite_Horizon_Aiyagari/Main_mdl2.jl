@@ -14,6 +14,8 @@
     cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+# Baxter's Computer
+#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
 Fig_Folder = "Figures"
@@ -56,9 +58,9 @@ println(" ")
         γ::Float64 = 2.0  ; # Relative risk aversion (utility) parameter
         δ::Float64 = 0.05 ; # Depreciation rate
         ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
-        σ_ϵ::Float64 = sqrt(0.162) ; # Standard deviation of labor efficiency innovation
+        σ_ϵ::Float64 = 0.162 ; # Standard deviation of labor efficiency innovation
         ρ_ζ::Float64 = 0.80 ; # Persistence of interest rate
-        σ_ζ::Float64 = sqrt(0.086) ; # Standard deviation of interest rate innovation
+        σ_r::Float64 = 0.086 ; # Standard deviation of interest rate
         # Model prices (partial equilibrium) and aggregates
         r::Float64 = 0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
         w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
@@ -95,7 +97,8 @@ p = Par();
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         # Interest rate process
         n_ζ       = 5                                  # Size of ζ_grid
-        MP_ζ      = Rouwenhorst95(p.ρ_ζ,p.σ_ζ,n_ζ)     # Markov Process for ζ
+        σ_ζ       = SigmaMatchR95(p.r,p.ρ_ζ,p.σ_r,n_ζ) # Calculate σ_ζ based on σ_r
+        MP_ζ      = Rouwenhorst95(p.ρ_ζ,σ_ζ,n_ζ)     # Markov Process for ζ
         ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
         ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
         # Productivity process
