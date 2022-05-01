@@ -488,9 +488,10 @@ println("===============================================\n")
 ## Asset Distribution Stats 
 println("===============================================")
     println("\n Asset Distribution Stats")
-    av_a  = sum( M_Aiyagari.a_grid_fine.*Γ_a ) ;
-    sd_a  = sqrt( sum( ((M_Aiyagari.a_grid_fine[1:end] .- av_a).^2).*Γ_a )  ) ;
-    CDF_a = cumsum(Γ_a) ;
+    av_a     = sum( M_Aiyagari.a_grid_fine.*Γ_a ) ;
+    sd_a     = sqrt( sum( ((M_Aiyagari.a_grid_fine[1:end] .- av_a).^2).*Γ_a )  ) ;
+    CDF_a    = cumsum(Γ_a) ;
+    Lorenz_a = cumsum(M_Aiyagari.a_grid_fine.*Γ_a)/av_a  
     println("    Expected Value: \$$(round.( av_a ,digits=3))k ")
     println("    Standard Deviation: \$$(round.( sd_a ,digits=3))k ")
 println("===============================================\n")
@@ -583,10 +584,28 @@ println("===============================================\n")
     xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_CDF.pdf")
 
-## Plot Pareto Tail (Above $1 Million)   
-
+## Plot Pareto Tail (Above $1 Million)
+    ind     = M_Aiyagari.a_grid_fine.>=1000 ;
+    grid_1M = M_Aiyagari.a_grid_fine[ind]   ;
+    Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])        ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
+    CCDF_1M = 1 .- cumsum(Γ_a_1M)           ;
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    xlabel!("Log Assets",labelsize=18)
+    title!("Distribution Tail",titlefont=14)
+    ylims!( floor(log(CCDF_1M[end-1])/10)*10 , 0 )
+    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
+    xticks!(log.([1,2,4,8,10]),["\$1m","\$2m","\$4m","\$8m","\$10m"])
+    savefig("./"*Fig_Folder*"/Distribution_Wealth_Pareto.pdf")
 
 ## Plot Lorenz Curve
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    plot(1:100,1:100,w=1,linecolor=:gray70,label=nothing,aspect_ratio=1)
+    plot!( 100*CDF_a  , 100*Lorenz_a , w=3, c=:cornflowerblue , label=nothing ,aspect_ratio=1)   
+    title!("Lorenz curve",titlefont=14)
+    ylims!(0,100); xlims!(0,100)
+    savefig("./"*Fig_Folder*"/Distribution_Wealth_Lorenz.pdf")
+
 
 
 ## Plot Saving Functions (median labor efficiency and interest rate)
