@@ -64,7 +64,7 @@ println(" ")
         ρ_ζ::Float64 = 0.50  ; # Persistence of interest rate
         σ_r::Float64 = 0.086 ; # Standard deviation of interest rate
         # Model prices (partial equilibrium)
-        r::Float64 = 0.0335  ; #  0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
+        r::Float64 = 0.0338 ; #  0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
         w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
