@@ -179,6 +179,8 @@ end
     # MP: struct to hold Markov Processes
     # Tauchen86: Discretize AR(1) with Tauchen 1986 method
     # Rouwenhorst95: Discretize AR(1) with Rouwenhorst 1995 method
+    # SigmaMatchR95: Finds a Sigma that will create a log process with a target std
+    # SigmaLogR95: Find Std for an AR(1) process in logs with Rouwenhorst 1995
     # Simulation_MC: Simulate a Markov Chain from a Markov Process MP
 
 #-----------------------------------------------------------
@@ -284,6 +286,99 @@ function Rouwenhorst95(ρ,σ,N)
         return MP(N=N,grid=z,Π=Π_z,PDF=PDF_z,CDF=CDF_z)
 end
 
+
+
+#-----------------------------------------------------------
+#-----------------------------------------------------------
+# SigmaMatchR95
+    # Objective is to find sigma_z so that the process:
+    #   x=exp(z) where  z'=ρz+η, η~N(0,sigma_z)
+    # has a given sigma_x
+    # Inputs:
+        # mean_x
+        # ρ_z - Process persisntence
+        # sigma_x - Target standard deviation for x
+        # N - Size of the grid
+    # Outputs:
+        # sigma_z - Standard deviation of z
+        function SigmaMatchR95(mean_x,ρ,sigma_x,N)
+            # Check if N>1
+            if N==1
+                sigma_z=0
+                return sigma_z
+            end
+            
+            # Find Lower Bound
+            sLB=sqrt(log(1+sigma_x^2*(1-ρ^2)^2/mean_x^2))
+            fLB=SigmaLogR95(mean_x,ρ,sLB,N)
+            if (fLB>sigma_x) 
+                println("Error in SigmaMatchR95")
+                println("LB=$sLB   gives fLb=$fLB>$sigma_x")
+                sigma_z=sLB
+                return sigma_z
+            end
+
+            
+            # Find Upper Bound
+            sUB=sLB*2
+            fUB=SigmaLogR95(mean_x,ρ,sUB,N)
+            if (fUB<sigma_x)
+                println("Error in SigmaMatchR95")
+                println("UB=$sUB   gives fUb=$fUB<$sigma_x")
+                sigma_z=sUB
+                return sigma_z
+            end 
+
+            # Bracket
+            iter=0
+            dist=1
+            while (iter<50) & (dist>1E-6)
+                iter=iter+1
+
+                global sMP=(sLB+sUB)/2
+                fMP=SigmaLogR95(mean_x,ρ,sMP,N)
+
+                if (fMP>sigma_x) 
+                    sUB=sMP
+                    fUB=fMP
+                else
+                    sLB=sMP
+                    fLB=fMP
+                end 
+
+                dist=abs(sLB-sUB)
+            end
+            sigma_z=sMP
+            # Return
+                return sigma_z
+        end
+#-----------------------------------------------------------
+#-----------------------------------------------------------
+# SigmaLogR95
+    # Calculates the standard deviation of x where:
+    #   x=exp(z) where  z'=ρz+η, η~N(0,sigma_z)
+    # Inputs:
+        # mean_x
+        # ρ_z - Process persisntence
+        # sigma_z - Standard deviation for z
+        # N - Size of the grid
+    # Outputs:
+        # sigma_x - Standard deviation of x
+        function SigmaLogR95(mean_x,ρ,sigma_z,N)
+
+            # Generate Rouwenhorst Process
+            MP_z=Rouwenhorst95(ρ,sigma_z,N)
+
+            #Renomalize Mean
+            x_grid=exp.(MP_z.grid)*mean_x/sum(exp.(MP_z.grid).*MP_z.PDF)
+            
+            #Caluculate Std
+            sigma_x=sqrt(sum(MP_z.PDF.*(x_grid.-mean_x).^2))
+
+            # Return
+            return sigma_x
+        end
+        
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
