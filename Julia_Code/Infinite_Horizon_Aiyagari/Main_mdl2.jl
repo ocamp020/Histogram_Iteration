@@ -70,7 +70,7 @@ println(" ")
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # VFI Parameters
-        max_iter::Int64     = 10000 ; # Maximum number of iterations
+        max_iter::Int64     = 20000 ; # Maximum number of iterations
         dist_tol::Float64   = 1E-6  ; # Tolerance for distance
         dist_tol_Δ::Float64 = 1E-11 ; # Tolerance for change in distance 
         η                   = 0.1   ; # Dampen factor
