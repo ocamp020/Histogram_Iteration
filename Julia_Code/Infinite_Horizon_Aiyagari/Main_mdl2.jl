@@ -57,14 +57,14 @@ println(" ")
     # We can set default values for our parameters
     @with_kw struct Par
         # Model Parameters
-        β::Float64 = 0.90 ; # Discount factor
-        γ::Float64 = 2.0  ; # Relative risk aversion (utility) parameter
+        β::Float64   = 0.94  ; # Discount factor
+        γ::Float64   = 2.0   ; # Relative risk aversion (utility) parameter
         ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162 ; # Standard deviation of labor efficiency innovation
-        ρ_ζ::Float64 = 0.80 ; # Persistence of interest rate
+        ρ_ζ::Float64 = 0.50  ; # Persistence of interest rate
         σ_r::Float64 = 0.086 ; # Standard deviation of interest rate
         # Model prices (partial equilibrium)
-        r::Float64 = 0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
+        r::Float64 = 0.0335  ; #  0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
         w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
@@ -74,11 +74,11 @@ println(" ")
         dist_tol_Δ::Float64 = 1E-11 ; # Tolerance for change in distance 
         η                   = 0.1   ; # Dampen factor
         # Histogram iteration parameters
-        Hist_max_iter     = 1000  ; # Maximum number of iterations
-        Hist_tol          = 1E-6  ; # Tolerance for distance
-        Hist_η            = 0.0   ; # Dampen factor
+        Hist_max_iter       = 1000  ; # Maximum number of iterations
+        Hist_tol            = 1E-6  ; # Tolerance for distance
+        Hist_η              = 0.0   ; # Dampen factor
         # Minimum consumption for numerical optimization
-        c_min::Float64    = 1E-16
+        c_min::Float64      = 1E-16
     end
 
 # Allocate paramters to object p for future calling
@@ -90,9 +90,9 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Assets Grid
-        a_max::Float64  = 10000                      # Max node of a_grid
-        θ_a::Float64    = 2.5                        # Curvature of a_grid
-        θ_a_f::Float64  = 2.2                        # Curvature of a_grid_fine
+        a_max::Float64  = 20000                      # Max node of a_grid
+        θ_a::Float64    = 3.0                        # Curvature of a_grid
+        θ_a_f::Float64  = 3.0                        # Curvature of a_grid_fine
         n_a::Int64      = 250                        # Size of a_grid
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
@@ -142,7 +142,7 @@ include("DP_Functions.jl")
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
     
     @time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1,read_flag=true));
-    
+
 println("===============================================\n")
 
 

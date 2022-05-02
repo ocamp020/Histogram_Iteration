@@ -70,7 +70,7 @@ println("===============================================\n")
     println("    Standard Deviation: \$$(round.( sd_a ,digits=3))k ")
     println("    Top X%  Level   Share ")
     for i=1:5
-    println("    $(round(100-Top_shares[i,1],digits=2))%  \$$(round(Top_shares[i,2],digits=3))k   $(Top_shares[i,3])% ")
+    println("    $(round(100-Top_shares[i,1],digits=2))%  \$$(round(Top_shares[i,2],digits=3))k   $(round(Top_shares[i,3],digits=2))% ")
     end 
 println("===============================================\n")
 ###################################################################
@@ -104,12 +104,12 @@ l = @layout [a  ; b  c]
     # Zoom in to higher end of the grid  
         gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,ylims=(-0.25,1.25))
         p3 = 
-        scatter( M_Aiyagari.a_grid     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing)
-        scatter!(M_Aiyagari.a_grid_fine,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing)
+        scatter( M_Aiyagari.a_grid[1:end]./1000     ,zeros(M_Aiyagari.n_a)     ,marker=(:circle ,3,:cornflowerblue  ),label=nothing)
+        scatter!(M_Aiyagari.a_grid_fine[1:end]./1000,ones( M_Aiyagari.n_a_fine),marker=(:diamond,3,:orange          ),label=nothing)
         #title!("Asset Grids",titlefont=14)
-        xlabel!("Assets (thousands of dollars)",labelsize=18)
+        xlabel!("Assets (millions of dollars)",labelsize=18)
         yticks!([0,1],["Coarse","Fine"],tickfontsize=12)
-        xlims!(1000,M_Aiyagari.a_max)
+        xlims!(1,M_Aiyagari.a_max/1000)
 
     #Combine plots
         pjoint = plot(p1, p2, p3, layout = l)
@@ -130,7 +130,7 @@ l = @layout [a  ; b  c]
     vline!( [log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)] ,c=:gray70  ,w=1,label=nothing)
     annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.7,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
     ylims!(0,ceil(maximum(100*Γ_ϵ/10))*10)
-    xlims!(log(0.1),log(10000)); xticks!(log.([0.1,1,10,100,1000,5000]),["\$100","\$1k","\$10k","\$100k","\$1m","\$5m"])
+    xlims!(log(1),log(1000)); xticks!(log.([1,5,10,50,100,500,1000]),["\$1k","\$5k","\$10k","\$50k","\$100k","\$500k","\$1m"])
     # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
     title!("Labor Income Distribution",titlefont=14)
     xlabel!("(log) Labor Income",labelsize=18)
