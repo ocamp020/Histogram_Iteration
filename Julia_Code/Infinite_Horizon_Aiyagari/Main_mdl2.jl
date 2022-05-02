@@ -588,20 +588,20 @@ println("===============================================\n")
 # Full CDF 
 CDF_a = zeros(M_Aiyagari.n_a_fine)
 for i = 1:M_Aiyagari.n_a_fine 
-    CDF_a[i,1] = sum(Γ_a[M_Aiyagari.a_grid_fine.<M_Aiyagari.a_grid_fine[i]])
+    CDF_a[i,1] = sum(Γ_a[M_Aiyagari.a_grid_fine.<=M_Aiyagari.a_grid_fine[i]])
 end
 # Conditional PDF above 1 million
 Γ_a_cond = zeros(M_Aiyagari.n_a_fine,1)
-tag_index = findall(x->x>1000, M_Aiyagari.a_grid_fine)[1] # index of fine grid that equals 1 million
+tag_index = findall(x->x>=1000, M_Aiyagari.a_grid_fine)[1] # index of fine grid that equals 1 million
 for i = 1:M_Aiyagari.n_a_fine
-    if M_Aiyagari.a_grid_fine[i] > 1000
+    if M_Aiyagari.a_grid_fine[i] >= 1000
         Γ_a_cond[i,1] = Γ_a[i,1]/(1-CDF_a[tag_index,1])
     end
 end
 # Conditional CDF above 1 million
 CDF_a_cond = zeros(M_Aiyagari.n_a_fine)
 for i = 1:M_Aiyagari.n_a_fine
-    CDF_a_cond[i,1] = sum(Γ_a_cond[M_Aiyagari.a_grid_fine.<M_Aiyagari.a_grid_fine[i]])
+    CDF_a_cond[i,1] = sum(Γ_a_cond[M_Aiyagari.a_grid_fine.<=M_Aiyagari.a_grid_fine[i]])
 end
 # Pareto Tail 
 gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
