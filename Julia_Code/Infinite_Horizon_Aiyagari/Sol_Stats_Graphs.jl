@@ -128,7 +128,7 @@ l = @layout [a  ; b  c]
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     scatter( log.(M_Aiyagari.ϵ_grid*p.w) , 100*Γ_ϵ , marker=(:circle ,7,:cornflowerblue),label=nothing)
     vline!( [log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)] ,c=:gray70  ,w=1,label=nothing)
-    annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.7,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
+    annotate!(log.(M_Aiyagari.ϵ_grid[med_ϵ]*p.w)+0.3,2,"\$$(round(M_Aiyagari.ϵ_grid[med_ϵ]*p.w,digits=1))k",10)
     ylims!(0,ceil(maximum(100*Γ_ϵ/10))*10)
     xlims!(log(1),log(1000)); xticks!(log.([1,5,10,50,100,500,1000]),["\$1k","\$5k","\$10k","\$50k","\$100k","\$500k","\$1m"])
     # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
