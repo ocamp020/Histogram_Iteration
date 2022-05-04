@@ -36,6 +36,7 @@ using Roots # Pkg.add("Roots") # https://github.com/JuliaMath/Roots.jl
 using Parameters # Pkg.add("Parameters") # https://github.com/mauro3/Parameters.jl
 using Kronecker # Pkg.add("Kronecker") # https://michielstock.github.io/Kronecker.jl
 using DelimitedFiles
+using Printf
 
 # Load functions in VFI Toolbox
 include("../VFI_Toolbox.jl")
@@ -61,18 +62,18 @@ println(" ")
         γ::Float64   = 2.0   ; # Relative risk aversion (utility) parameter
         ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162 ; # Standard deviation of labor efficiency innovation
-        ρ_ζ::Float64 = 0.50  ; # Persistence of interest rate
+        ρ_ζ::Float64 = 0.70  ; # Persistence of interest rate
         σ_r::Float64 = 0.086 ; # Standard deviation of interest rate
         # Model prices (partial equilibrium)
-        r::Float64 = 0.0338 ; #  0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
+        r::Float64 = 0.0320 ; #  0.0379 ; # Average real return on net-worth (Fagereng et al. 2020)
         w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # VFI Parameters
         max_iter::Int64     = 20000 ; # Maximum number of iterations
-        dist_tol::Float64   = 1E-6  ; # Tolerance for distance
-        dist_tol_Δ::Float64 = 1E-11 ; # Tolerance for change in distance 
-        η                   = 0.1   ; # Dampen factor
+        dist_tol::Float64   = 5E-6  ; # Tolerance for distance
+        dist_tol_Δ::Float64 = 1E-10 ; # Tolerance for change in distance 
+        η                   = 0.10  ; # Dampen factor
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
         Hist_tol            = 1E-6  ; # Tolerance for distance
@@ -90,17 +91,18 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Assets Grid
-        a_max::Float64  = 20000                      # Max node of a_grid
-        θ_a::Float64    = 3.0                        # Curvature of a_grid
-        θ_a_f::Float64  = 3.0                        # Curvature of a_grid_fine
+        a_max::Float64  = 110000                     # Max node of a_grid
+        θ_a::Float64    = 3.5                        # Curvature of a_grid
+        θ_a_f::Float64  = 3.5                        # Curvature of a_grid_fine
         n_a::Int64      = 250                        # Size of a_grid
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         # Interest rate process
         n_ζ       = 7                                  # Size of ζ_grid
-        σ_ζ       = SigmaMatchR95(p.r,p.ρ_ζ,p.σ_r,n_ζ) # Calculate σ_ζ based on σ_r
-        MP_ζ      = Rouwenhorst95(p.ρ_ζ,σ_ζ,n_ζ)       # Markov Process for ζ
+        σ_ζ       = 1.30 # SigmaMatchR95(p.r,p.ρ_ζ,p.σ_r,n_ζ) # Calculate σ_ζ based on σ_r
+        MP_ζ      = Tauchen86(p.ρ_ζ,σ_ζ,n_ζ,1.96)      # Markov Process for ζ
+            # MP_ζ      = Rouwenhorst95(p.ρ_ζ,σ_ζ,n_ζ)       # Markov Process for ζ
         ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
         ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
         # Labor productivity process

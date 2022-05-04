@@ -29,9 +29,9 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
     if G_ap_old==nothing
         G_ap_old  = (r*M.ζ_mat.+1).*M.a_mat
     end
-    G_dist_new = 100             ; # Initialize distance
-    G_dist_old = 1               ; # Initialize distance
-    G_dist_chage = 1             ; # Initialize change in distance
+    G_dist_new    = 100          ; # Initialize distance
+    G_dist_old    = 1            ; # Initialize distance
+    G_dist_change = 1            ; # Initialize change in distance
     println(" ")
     println("------------------------")
     println("PFI - n_ϵ=$n_ϵ, n_ζ=$n_ζ, n_a=$n_a - θ_a=$θ_a - r=$r")
@@ -49,19 +49,19 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
         # Update change in convergence criteria
         # Report progress
         if mod(iter,250)==0
-            println("   PFI Loop: iter=$iter, dist=",G_dist_new)
+            @printf("\n   PFI Loop: iter = %d, dist = %.4e",iter,G_dist_new)
         end
         # Check convergence and return results
         if G_dist_new<=dist_tol ||  ((G_dist_change<=dist_tol_Δ)&&(G_dist_new<=dist_tol*10))
-            println("PFI - n_ϵ=$n_ϵ, n_ζ=$n_ζ, n_a=$n_a - θ_a=$θ_a - r=$r")
+            
             if G_dist_new<=dist_tol
-            println("Distance converged: Iterations = $iter, Distance = ",G_dist_new)
+            @printf("\n\nDistance converged: Iterations = %d, Distance = %.4e",iter,G_dist_new)
             elseif ((G_dist_change<=dist_tol_Δ)&&(G_dist_new<=dist_tol*10))
-            println("Distance fluctuating: Iterations = $iter, Distance = ",G_dist_new)
-            println("Change in distance converged: Iterations = $iter, Change in Distance =", G_dist_change)
+            @printf("\n\nDistance fluctuating: Iterations = %d, Distance = %.4e",iter,G_dist_new)
+            @printf("\nChange in distance converged: Iterations = %d, Δ Distance = %.4e",iter,G_dist_change)
             end
-            println("------------------------")
-            println(" ")
+            
+            println("\n------------------------\n")
             # Check borrowing constraint
             if any( G_ap_new.<p.a_min )
                 error("Borrowing Constraint Violated")
@@ -154,10 +154,10 @@ function T_EGM_G(M::Model)
             G_ap[ind] = a_min
             G_c[ind]  = (r*M.ζ_mat[ind].+1)*M.a_mat[ind] + w*M.ϵ_mat[ind] - a_min
         end
-        # Check for borrowing constraint
-        #if any( G_ap.<a_min )
+        # # Check for borrowing constraint
+        # if any( G_ap.<a_min )
         #    error("Borrowing Constraint Violated")
-        #end
+        # end
     # Return Results
     return G_ap, G_c
 end
@@ -249,11 +249,11 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         Γ_0 .= (1-Hist_η)*Γ .+ Hist_η*Γ_0
         # Report progress
         if mod(i_H,10)==0
-            println("   Histogram Loop: iter=$i_H, dist=$H_dist")
+            @printf("\n   Histogram Loop: iter = %d, dist = %.4e",i_H,H_dist)
         end
         # Check convergence
         if H_dist<Hist_tol
-            println("Histogram iteartion converged in iteration $i_H. H_dist=$H_dist\n--------------------------------\n")
+            @printf("Histogram iteartion converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo=H_ω_lo, H_ω_hi=H_ω_hi)
             return M
         end

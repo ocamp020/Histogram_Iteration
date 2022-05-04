@@ -160,7 +160,7 @@ l = @layout [a  ; b  c]
     title!("Asset Distribution",titlefont=14)
     ylims!(0,ceil(maximum(100*Γ_a/1))*1)
     xlims!(log(0.1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
-    xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
+    xticks!(log.([1,10,100,1000,10000,100000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$100m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth.pdf")
 
 ## Plot CDF
@@ -170,7 +170,7 @@ l = @layout [a  ; b  c]
     title!("Cumulative Asset Distribution",titlefont=14)
     ylims!(0,100)
     xlims!(log(0.1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1000)); 
-    xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
+    xticks!(log.([1,10,100,1000,10000,100000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$100m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_CDF.pdf")
 
 ## Plot Pareto Tail (Above $1 Million)
@@ -187,7 +187,7 @@ l = @layout [a  ; b  c]
     title!("Distribution Tail",titlefont=14)
     ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
     xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,10]),["\$1m","\$2m","\$4m","\$8m","\$10m"])
+    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_Pareto.pdf")
 
 ## Plot Lorenz Curve
