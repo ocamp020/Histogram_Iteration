@@ -2,28 +2,25 @@
 # Sergio Ocampo, Baxter Robinson, and Emmanuel Murray Leclair
 # April 2022
 # Aiyagari economy: 
-#       1. Infinitely lived agents
+#       1. Finitely lived agents and overlapping generations
 #       2. Inelastic labor supply
-#       3. Stochastic rate of returns
 # This scripts computes longitudinal moments for the model
 # 
-# Solve:   V(ζ,ϵ,a) = max{ ((1+r(ζ))a+wϵ̄ϵ-a')^(1-γ)/(1-γ) +beta*E[V(ζ',ϵ',a')|ζ,ϵ] }
-#           log(ϵ') = ρ_ϵ*log(ϵ) + η_ϵ; η_ϵ~N(0,σ_ϵ);
-#           r(ζ)    = exp(ζ)r⋆    
-#           log(ζ') = ρ_ζ*log(ζ) + η_ζ; η_ζ~N(0,σ_ζ); 
-# The constant ϵ̄ guarantees that E[ϵ]=1 and so aggregate labor L=E[ϵ]=1
+# Solve:   V(h,ϵ,a) = max{ ((1+r)a+wϵ̄f(h,ϵ)-a')^(1-γ)/(1-γ) + beta*E[ s(h)*V(h+1,ϵ',a') + (1-s(h))*ν(a')|ϵ] }
+#           log(ϵ') = ρ_ϵ*log(ϵ) + η_ϵ; η_ϵ~N(0,σ_ϵ); 
+# The constant ϵ̄ guarantees that E[f(h,ϵ)]=1 and so aggregate labor L=E[ϵ]=1
 
 ## Change to your home directory 
 # Sergio's Computer 
     cd()
-    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Emmanuel's Computer
     # cd()
-    # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
-    # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
-    # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Laptop
+    # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Desktop
+    # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Baxter's Computer
-#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -51,7 +48,7 @@ println("------------------------")
 println("Aiyagari in Julia")
 println("PWD: ",pwd())
 println("This code uses Plots, Interpolations, Dierckx, ForwardDiff, Optim, Roots, Parameters, ScaledInterpolation")
-println("Solve Aiyagari model with EGM and the histogram method")
+println("Solve OLG Aiyagari model with EGM and the histogram method")
 println("------------------------")
 println(" ")
 
