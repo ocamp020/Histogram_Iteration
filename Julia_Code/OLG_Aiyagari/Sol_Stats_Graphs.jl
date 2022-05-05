@@ -2,13 +2,12 @@
 ###################################################################
 
 ## Define marginal distributions 
-    Γ_a = dropdims( sum( M_Aiyagari.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
-    Γ_ϵ = dropdims( sum( M_Aiyagari.Γ , dims=(1,3) ) , dims=(1,3) ) ; # Labor Efficiency 
-    Γ_ζ = dropdims( sum( M_Aiyagari.Γ , dims=(1,2) ) , dims=(1,2) ) ; # Returns 
+    Γ_a   = dropdims( sum( M_Aiyagari.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
+    Γ_ϵ   = dropdims( sum( M_Aiyagari.Γ , dims=(1,3) ) , dims=(1,3) ) ; # Labor Efficiency 
+    Γ_age = dropdims( sum( M_Aiyagari.Γ , dims=(1,2) ) , dims=(1,2) ) ; # Returns 
 
 ## Define index for median shocks
     med_ϵ = convert(Int64,round(M.n_ϵ/2));
-    med_ζ = convert(Int64,round(M.n_ζ/2));
 
 ###################################################################
 ###################################################################

@@ -52,6 +52,10 @@ println("Solve OLG Aiyagari model with EGM and the histogram method")
 println("------------------------")
 println(" ")
 
+#-----------------------------------------------------------
+#-----------------------------------------------------------
+# Load function with population and survival probabilities
+include("Population_Setup.jl")
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
@@ -60,28 +64,28 @@ println(" ")
     # We can set default values for our parameters
     @with_kw struct Par
         # Model Parameters
-        β::Float64   = 0.94  ; # Discount factor
-        γ::Float64   = 2.0   ; # Relative risk aversion (utility) parameter
-        ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
-        σ_ϵ::Float64 = 0.162 ; # Standard deviation of labor efficiency innovation
-        ρ_ζ::Float64 = 0.70  ; # Persistence of interest rate target pareto coefficient of 1.8
-        σ_ζ::Float64 = 1.30  ; # Standard deviation of interest rate target top 1% share of 20%
+        β::Float64   = 0.94   ; # Discount factor
+        γ::Float64   = 2.0    ; # Relative risk aversion (utility) parameter
+        χ::Float64   = 0.0 # 1.27   ; # Bequest motive factor 
+        γ_b::Float64 = 2.0    ; # Bequest motive curvature
+        ρ_ϵ::Float64 = 0.963  ; # Persistence of labor efficiency process
+        σ_ϵ::Float64 = 0.162  ; # Standard deviation of labor efficiency innovation
         # Model prices (partial equilibrium)
-        r::Float64 = 0.0320 ; #  Target wealth weighted 3.79% average real return on net-worth (Fagereng et al. 2020)
-        w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
+        r::Float64 = 0.0379   ; # Target wealth weighted 3.79% average real return on net-worth (Fagereng et al. 2020)
+        w::Float64 = 53.624   ; # U.S. (2019) - tens of thousands $
         # Borrowing constraint
         a_min::Float64 = 1E-4 ; # Borrowing constraint
-        # VFI Parameters
-        max_iter::Int64     = 20000 ; # Maximum number of iterations
-        dist_tol::Float64   = 5E-6  ; # Tolerance for distance
-        dist_tol_Δ::Float64 = 1E-10 ; # Tolerance for change in distance 
-        η                   = 0.10  ; # Dampen factor
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
         Hist_tol            = 1E-6  ; # Tolerance for distance
-        Hist_η              = 0.0   ; # Dampen factor
+        Hist_η              = 0.10  ; # Dampen factor
         # Minimum consumption for numerical optimization
-        c_min::Float64      = 1E-16
+        c_min::Float64      = 1E-16 ; 
+        # Life cycle parameters 
+        Max_Age             = 81    ; # Corresponds to 100 years old 
+        Surv_Pr             = Survival_Probabilities_Bell_Miller(Max_Age) ; 
+        Age_Π               = Age_Transition(Max_Age,Surv_Pr)             ;
+        Age_PDF             = Age_Distribution(Age_Π)                     ;
     end
 
 # Allocate paramters to object p for future calling
@@ -100,35 +104,42 @@ p = Par();
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
-        # Interest rate process
-        n_ζ       = 7                                  # Size of ζ_grid
-        MP_ζ      = Tauchen86(p.ρ_ζ,p.σ_ζ,n_ζ,1.96)      # Markov Process for ζ
-        ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
-        ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
-        # Labor productivity process
+        # Labor productivity process - Transitory 
         n_ϵ       = 15                                 # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
         ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels
+        # Labor productivity process - Life Cycle 
+        age_vec   = collect(1:p.Max_Age)
+        log_ξ_grid= (60*(age_vec.-1).-(age_vec.-1).^2)./1800  # Process peaks at age 50, and by age 80 gives the same income as when newborn
+        ξ_ref     = 1/sum(exp.(log_ξ_grid).*p.Age_PDF)   # Reference level for labor efficiency 
+        ξ_grid    = ξ_ref*exp.(log_ξ_grid)             # Grid in levels
         # State matrices
-        a_mat     = repeat(a_grid,1,n_ϵ,n_ζ)
-        ϵ_mat     = repeat(ϵ_grid',n_a,1,n_ζ)
-        ζ_mat     = repeat(reshape(ζ_grid,(1,1,n_ζ)),n_a,n_ϵ,1)
-        a_mat_fine= repeat(a_grid_fine,1,n_ϵ,n_ζ)
-        ϵ_mat_fine= repeat(ϵ_grid',n_a_fine,1,n_ζ)
-        ζ_mat_fine= repeat(reshape(ζ_grid,(1,1,n_ζ)),n_a_fine,n_ϵ,1)
+        a_mat     = repeat(a_grid,1,n_ϵ,p.Max_Age)
+        ϵ_mat     = repeat(ϵ_grid',n_a,1,p.Max_Age)
+        ξ_mat     = repeat(reshape(ξ_grid,(1,1,p.Max_Age)),n_a,n_ϵ,1)
+        a_mat_fine= repeat(a_grid_fine,1,n_ϵ,p.Max_Age)
+        ϵ_mat_fine= repeat(ϵ_grid',n_a_fine,1,p.Max_Age)
+        ξ_mat_fine= repeat(reshape(ξ_grid,(1,1,p.Max_Age)),n_a_fine,n_ϵ,1)
+        a_mat_aϵ  = repeat(a_grid,1,n_ϵ)
+        # Labor income matrices 
+        y_mat     = p.w*ϵ_mat.*ξ_mat
+        y_mat_fine= p.w*ϵ_mat_fine.*ξ_mat_fine
         # Value and policy functions
-        V         = Array{Float64}(undef,n_a,n_ϵ,n_ζ)       # Value Function
-        G_ap      = Array{Float64}(undef,n_a,n_ϵ,n_ζ)       # Policy Function for capital
-        G_c       = Array{Float64}(undef,n_a,n_ϵ,n_ζ)       # Policy Function
-        V_fine    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Value Function on fine grid
-        G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
-        G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
+        V         = Array{Float64}(undef,n_a,n_ϵ,p.Max_Age)       # Value Function
+        G_ap      = Array{Float64}(undef,n_a,n_ϵ,p.Max_Age)       # Policy Function for capital
+        G_c       = Array{Float64}(undef,n_a,n_ϵ,p.Max_Age)       # Policy Function
+        V_fine    = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Value Function on fine grid
+        G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
+        G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
         # Distribution
-        Γ         = 1/(n_ϵ*n_a_fine*n_ζ)*ones(n_a_fine,n_ϵ,n_ζ)     # Distribution (initiliazed to uniform)
-        H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)            # Index for discretization of savings choice 
-        H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
-        H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
+        Γ         = 1/(n_ϵ*n_a_fine*p.Max_Age)*ones(n_a_fine,n_ϵ,p.Max_Age) # Distribution (initiliazed to uniform)
+        H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)              # Index for discretization of savings choice 
+        # H_ω       = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)                    # Probability of transition lo low index in discretization
+        H_ω_lo_s   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age,n_ϵ)
+        H_ω_hi_s   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age,n_ϵ)
+        H_ω_lo_d   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)
+        H_ω_hi_d   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)
         # Misc
         method = 1 # 1 for Kronecker and 2 for loops in expectation of PFI
         read_flag = false # Boolean for reading results from file 
@@ -148,8 +159,8 @@ println("\n===============================================\n Solving Aiyagari wi
 println("===============================================\n")
 
 
-# Get stats and graphs for the solution of the model 
-include("Sol_Stats_Graphs.jl")
+# # Get stats and graphs for the solution of the model 
+# include("Sol_Stats_Graphs.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")
