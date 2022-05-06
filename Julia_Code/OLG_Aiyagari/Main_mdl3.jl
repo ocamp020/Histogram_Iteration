@@ -107,7 +107,7 @@ p = Par();
         # Labor productivity process - Transitory 
         n_ϵ       = 15                                 # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
-        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
+        ϵ_ref     = 1.038479216975849/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels
         # Labor productivity process - Life Cycle 
         age_vec   = collect(1:p.Max_Age)
