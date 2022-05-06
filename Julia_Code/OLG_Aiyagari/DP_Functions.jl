@@ -24,12 +24,12 @@ function warm_glow(ap,p::Par)
     if p.γ_b>1
     return p.χ*(ap).^(1-p.γ_b)/(1-p.γ_b)
     else
-    return p.χ*log.(c)
+    return p.χ.*log.(c)
     end
 end
 
 function d_warm_glow(ap,p::Par)
-    return p.χ*(ap).^(-p.γ_b)
+    return p.χ.*(ap).^(-p.γ_b)
 end
 
 #-----------------------------------------------------------
@@ -37,9 +37,9 @@ end
 # Policy function: PFI Fixed Point 
 function Solve_Policy_Functions(T::Function,M::Model)
     # Unpack model structure
-    @unpack p, n_ϵ, n_a, n_a_fine, θ_a, a_grid, a_grid_fine,method = M
+    @unpack p, n_ϵ, n_a, n_a_fine, θ_a, a_grid, a_grid_fine = M
     # PFI paramters
-    @unpack max_iter, dist_tol, dist_tol_Δ, r, w, η, Max_Age = p
+    @unpack r, w, Max_Age = p
     
     println(" ")
     println("------------------------")
@@ -78,7 +78,7 @@ end
 #-----------------------------------------------------------
 # Bellman operator - EGM - Backwards Induction
 function T_BI_G(M::Model)
-    @unpack p, n_ϵ, MP_ϵ, n_a, y_mat, a_grid, a_mat_aϵ, G_ap, method = M
+    @unpack p, n_ϵ, MP_ϵ, n_a, y_mat, a_grid, a_mat_aϵ, G_ap = M
     @unpack β, a_min, r, w, Max_Age, Surv_Pr, Age_Π = p
 
     ## Allocate policy functioins 
@@ -115,7 +115,7 @@ function T_BI_G(M::Model)
 
         else 
             
-            # println("   age = $Max_Age - No bequest motive, setting savings to zero")
+            println("   age = $Max_Age - No bequest motive, setting savings to zero")
             G_c[:,:,Max_Age]  .= (1+r).*a_mat_aϵ .+ y_mat[:,:,Max_Age] .- a_min
             G_ap[:,:,Max_Age] .= a_min 
 
@@ -125,7 +125,7 @@ function T_BI_G(M::Model)
     ## Backwards Induction Loop 
     for age in (Max_Age-1):-1:1
         # Define RHS of Euler equation for each (a',ϵ,age)
-            # The matrix d_utility is (a',ϵ') for a given age, the transition matrix is transposed so that it gives (ϵ',ϵ), result is (a,ϵ)
+            # The matrix d_utility is (a',ϵ') for a given age, the transition matrix is transposed so that it gives (ϵ',ϵ), result is (a',ϵ)
         Euler_RHS = β*( Surv_Pr[age]*(1+r).* d_utility( (1+r).*a_mat_aϵ + y_mat[:,:,age+1] - G_ap[:,:,age+1] , p )*(MP_ϵ.Π)'  .+ (1 .- Surv_Pr[age]).*warm_glow_mat  )
         # Check Monotonicity
         if any( Euler_RHS.<0 )
@@ -186,6 +186,9 @@ function Histogram_Method_Loop(M::Model,Γ_0=nothing)
 
     # Set median ϵ for newborns:
     med_ϵ = convert(Int64,round(n_ϵ/2));
+
+    # Set initial wealth to (close to) $1k 
+    b_ind = collect(1:n_a_fine)[a_grid_fine.>=1][1]
 
     # Discretize distribution
     println("   Discretizing Choices and Computing Transition Probabilities")
@@ -261,9 +264,10 @@ function Histogram_Method_Loop(M::Model,Γ_0=nothing)
                 # Γ[i_ap+1,i_ϵp,age+1] = Γ[i_ap+1,i_ϵp,age+1] + Surv_Pr[age]*Pr_ϵp[i_ϵp]*(1-H_ω[i_a,i_ϵ,age])*Γ_0[i_a,i_ϵ,age]
             end
             
-            # If agents die: age=1 and ϵ=median(ϵ)
-                Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + H_ω_lo_d[i_a,i_ϵ,age]*Γ_0[i_a,i_ϵ,age]
-                Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + H_ω_hi_d[i_a,i_ϵ,age]*Γ_0[i_a,i_ϵ,age]
+            # If agents die: age=1 and ϵ=median(ϵ) and no wealth 
+                Γ[b_ind,med_ϵ,1] = Γ[b_ind,med_ϵ,1] + (1-Surv_Pr[age])*Γ_0[i_a,i_ϵ,age]
+                # Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + H_ω_lo_d[i_a,i_ϵ,age]*Γ_0[i_a,i_ϵ,age]
+                # Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + H_ω_hi_d[i_a,i_ϵ,age]*Γ_0[i_a,i_ϵ,age]
                 # Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + (1-Surv_Pr[age])*(  H_ω[i_a,i_ϵ,age])*Γ_0[i_a,i_ϵ,age]
                 # Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + (1-Surv_Pr[age])*(1-H_ω[i_a,i_ϵ,age])*Γ_0[i_a,i_ϵ,age]
         end
@@ -274,10 +278,12 @@ function Histogram_Method_Loop(M::Model,Γ_0=nothing)
         for i_ϵ=1:n_ϵ      # Current ϵ
         for i_a=1:n_a_fine # Current a
             
-            i_ap = H_ind[i_a,i_ϵ,Max_Age]    ;
+            Γ[b_ind,med_ϵ,1] = Γ[b_ind,med_ϵ,1] + Γ_0[i_a,i_ϵ,Max_Age]
 
-            Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + H_ω_lo_d[i_a,i_ϵ,Max_Age]*Γ_0[i_a,i_ϵ,Max_Age]
-            Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + H_ω_hi_d[i_a,i_ϵ,Max_Age]*Γ_0[i_a,i_ϵ,Max_Age]
+            # i_ap = H_ind[i_a,i_ϵ,Max_Age]    ;
+
+            # Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + H_ω_lo_d[i_a,i_ϵ,Max_Age]*Γ_0[i_a,i_ϵ,Max_Age]
+            # Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + H_ω_hi_d[i_a,i_ϵ,Max_Age]*Γ_0[i_a,i_ϵ,Max_Age]
             # Γ[i_ap  ,med_ϵ,1] = Γ[i_ap  ,med_ϵ,1] + (  H_ω[i_a,i_ϵ,Max_Age])*Γ_0[i_a,i_ϵ,Max_Age]
             # Γ[i_ap+1,med_ϵ,1] = Γ[i_ap+1,med_ϵ,1] + (1-H_ω[i_a,i_ϵ,Max_Age])*Γ_0[i_a,i_ϵ,Max_Age]
 
@@ -324,7 +330,7 @@ function Euler_Error(i_ϵ::Int64,age::Int64,a,M::Model)
     ap  = min(M.a_grid[end],max(M.a_grid[1],G_ap_ϵa(age,i_ϵ,a,M)))
 
     # Current consumption
-    c   = (1+r)*a +y_mat[1,i_ϵ,age] - ap
+    c   = (1+r)*a + y_mat[1,i_ϵ,age] - ap
 
     # Compute left hand side of Euler equation
     LHS = d_utility(c,p)
@@ -336,7 +342,7 @@ function Euler_Error(i_ϵ::Int64,age::Int64,a,M::Model)
         for i_ϵp=1:n_ϵ
         cp  = (1+r)*ap + y_mat[1,i_ϵp,age+1] - G_ap_ϵa(age+1,i_ϵp,ap,M)
         up  = d_utility(cp,p)
-        RHS_prob[i_ϵp] = β*( Suvr_Pr[age]*MP_ϵ.Π[i_ϵ,i_ϵp]*(1+r)*up + (1-Surv_Pr[age])*d_warm_glow(ap,p) )
+        RHS_prob[i_ϵp] = β*( Surv_Pr[age]*MP_ϵ.Π[i_ϵ,i_ϵp]*(1+r)*up + (1-Surv_Pr[age])*d_warm_glow(ap,p) )
         end
     RHS = sum(RHS_prob)
     else 

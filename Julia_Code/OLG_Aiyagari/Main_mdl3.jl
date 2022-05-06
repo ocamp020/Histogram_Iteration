@@ -66,7 +66,7 @@ include("Population_Setup.jl")
         # Model Parameters
         β::Float64   = 0.94   ; # Discount factor
         γ::Float64   = 2.0    ; # Relative risk aversion (utility) parameter
-        χ::Float64   = 0.0 # 1.27   ; # Bequest motive factor 
+        χ::Float64   = 0.0    ; # Bequest motive factor 
         γ_b::Float64 = 2.0    ; # Bequest motive curvature
         ρ_ϵ::Float64 = 0.963  ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162  ; # Standard deviation of labor efficiency innovation
@@ -77,8 +77,8 @@ include("Population_Setup.jl")
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
-        Hist_tol            = 1E-6  ; # Tolerance for distance
-        Hist_η              = 0.10  ; # Dampen factor
+        Hist_tol            = 1E-7  ; # Tolerance for distance
+        Hist_η              = 0.00  ; # Dampen factor
         # Minimum consumption for numerical optimization
         c_min::Float64      = 1E-16 ; 
         # Life cycle parameters 
@@ -97,7 +97,7 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Assets Grid
-        a_max::Float64  = 110000                     # Max node of a_grid
+        a_max::Float64  = 10000                      # Max node of a_grid
         θ_a::Float64    = 3.5                        # Curvature of a_grid
         θ_a_f::Float64  = 3.5                        # Curvature of a_grid_fine
         n_a::Int64      = 250                        # Size of a_grid
@@ -141,7 +141,6 @@ p = Par();
         H_ω_lo_d   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)
         H_ω_hi_d   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)
         # Misc
-        method = 1 # 1 for Kronecker and 2 for loops in expectation of PFI
         read_flag = false # Boolean for reading results from file 
     end
 
@@ -154,13 +153,13 @@ include("DP_Functions.jl")
 # Execute model solution 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
     
-    @time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1,read_flag=true));
+    @time M_Aiyagari = Aiyagari_Equilibrium(Model(read_flag=true));
 
 println("===============================================\n")
 
 
-# # Get stats and graphs for the solution of the model 
-# include("Sol_Stats_Graphs.jl")
+# Get stats and graphs for the solution of the model 
+include("Sol_Stats_Graphs.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")

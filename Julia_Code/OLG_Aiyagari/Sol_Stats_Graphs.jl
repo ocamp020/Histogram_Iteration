@@ -7,7 +7,8 @@
     Γ_age = dropdims( sum( M_Aiyagari.Γ , dims=(1,2) ) , dims=(1,2) ) ; # Returns 
 
 ## Define index for median shocks
-    med_ϵ = convert(Int64,round(M.n_ϵ/2));
+    med_ϵ   = convert(Int64,round(M.n_ϵ/2)) ;
+    ref_age = 31                            ;
 
 ###################################################################
 ###################################################################
@@ -16,39 +17,19 @@
 
 ###################################################################
 ###################################################################
-## Print income and return grids
+## Labor income stats
 println("===============================================")
-## Labor income 
     println("\n Income Grid and Probability")
     println("   Node - Value - PDF - Γ")
     aux = [M_Aiyagari.ϵ_grid*p.w M_Aiyagari.MP_ϵ.PDF Γ_ϵ]
     for i_ϵ=1:M_Aiyagari.n_ϵ
         println("   $i_ϵ:  $(round.(aux[i_ϵ,:],digits=4))")
     end 
-    println("\n    Expected value: $(round(aux[:,1]'*aux[:,2],digits=3)) Thousand Dollars")
-    println("    Expected value: $(round(aux[:,1]'*Γ_ϵ,digits=3)) Thousand Dollars")
-    println("    Standard Deviation: $(round(sqrt( ((aux[:,1] .- p.w).^2)'*Γ_ϵ ) , digits=3)) Thousand Dollars \n")
-
-## Return 
-    println("\n Return Grid and Probability")
-    println("   Node - Value - PDF - Γ")
-    aux = [M_Aiyagari.ζ_grid*p.r*100 M_Aiyagari.MP_ζ.PDF Γ_ζ]
-    for i_ζ=1:M_Aiyagari.n_ζ
-        println("   $i_ζ:  $(round.(aux[i_ζ,:],digits=4))")
-    end 
-    println("\n    Expected Value: $(round.(aux[:,1]'*aux[:,2],digits=4))% ")
-    println("    Expected Value: $(round.(aux[:,1]'*Γ_ζ,digits=4))% ")
-    println("    Standard Deviation: $(round(100*sqrt( ((aux[:,1]./100 .- p.r).^2)'*Γ_ζ ) , digits=4))% \n")
-
-## Wealth-Weighted Returns 
-    println("\n Wealth Weighted Returns")
-    r_mat  = p.r*M_Aiyagari.ζ_mat_fine
-    aux_pr = M_Aiyagari.a_mat_fine.*M_Aiyagari.Γ; aux_pr = aux_pr./sum(aux_pr)
-    av_r_w = 100*sum(r_mat.*aux_pr)
-    sd_r_w = 100*sum( ((r_mat.-av_r_w/100).^2).*aux_pr )
-    println("    Expected Value: $(round.( av_r_w ,digits=4))% ")
-    println("    Standard Deviation: $(round.( sd_r_w ,digits=4))% \n")
-
+    av_y = sum(M_Aiyagari.y_mat_fine.*M_Aiyagari.Γ) 
+    sd_y = sqrt( sum( ((M_Aiyagari.y_mat_fine .- av_y).^2).*M_Aiyagari.Γ ) )
+    age_profile_y = [ sum(M_Aiyagari.y_mat_fine[:,:,i].*M_Aiyagari.Γ[:,:,i])/Γ_age[i] for i in 1:M_Aiyagari.p.Max_Age ]         
+    println("\n    Expected value: $(round( av_y ,digits=3)) Thousand Dollars")
+    println("    Standard Deviation: $(round( sd_y , digits=3)) Thousand Dollars \n")
 println("===============================================\n")
 
 ## Asset Distribution Stats 
@@ -65,12 +46,16 @@ println("===============================================\n")
             Top_shares[i,2] = M_Aiyagari.a_grid_fine[ind_top][1] ;
             Top_shares[i,3] = 100*sum( M_Aiyagari.a_grid_fine[ind_top].*Γ_a[ind_top] )/av_a ; 
         end
-    println("    Expected Value: \$$(round.( av_a ,digits=3))k ")
-    println("    Standard Deviation: \$$(round.( sd_a ,digits=3))k ")
+    age_profile_a  = [ sum(M_Aiyagari.a_mat_fine[:,:,i].*M_Aiyagari.Γ[:,:,i])/Γ_age[i] for i in 1:M_Aiyagari.p.Max_Age ]         
+    age_profile_ap = [ sum(M_Aiyagari.G_ap_fine[:,:,i].*M_Aiyagari.Γ[:,:,i])/Γ_age[i] for i in 1:M_Aiyagari.p.Max_Age ]         
+    B2A_ratio      = sum(age_profile_ap.*Γ_age.*(1 .- M_Aiyagari.p.Surv_Pr))/av_a
+    println("    Expected Value: \$$(round.( av_a ,digits=2))k ")
+    println("    Standard Deviation: \$$(round.( sd_a ,digits=2))k ")
     println("    Top X%  Level   Share ")
     for i=1:5
-    println("    $(round(100-Top_shares[i,1],digits=2))%  \$$(round(Top_shares[i,2],digits=3))k   $(round(Top_shares[i,3],digits=2))% ")
+    println("    $(round(100-Top_shares[i,1],digits=2))%  \$$(round(Top_shares[i,2],digits=2))k   $(round(Top_shares[i,3],digits=2))% ")
     end 
+    println("    Bequest to wealth ratio = $(round.( 100*B2A_ratio ,digits=2))% ")
 println("===============================================\n")
 ###################################################################
 ###################################################################
@@ -133,18 +118,7 @@ l = @layout [a  ; b  c]
     # xlims!(0,ceil(maximum(M_Aiyagari.ϵ_grid*p.w/500))*500)
     title!("Labor Income Distribution",titlefont=14)
     xlabel!("(log) Labor Income",labelsize=18)
-    savefig("./"*Fig_Folder*"/Distribution_Income.pdf")
-
-# Plot Return Distribution
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( 
-            M_Aiyagari.ζ_grid*p.r*100 , 100*Γ_ζ , marker=(:circle,7,:cornflowerblue),label=nothing,
-            series_annotations=text.(round.(M_Aiyagari.ζ_grid*p.r*100,digits=2), :left , :bottom , 10)  )
-    ylims!(0,ceil(maximum(100*Γ_ζ/10))*10)
-    xlims!(0,ceil(maximum(100*M_Aiyagari.ζ_grid*p.r/10))*10)
-    title!("Return Distribution",titlefont=14)
-    xlabel!("Percentage Points)",labelsize=18)
-    savefig("./"*Fig_Folder*"/Distribution_Return.pdf")
+    savefig("./"*Fig_Folder*"/Distribution_Income_Shocks.pdf")
 ###################################################################
 ###################################################################
 
@@ -176,15 +150,16 @@ l = @layout [a  ; b  c]
     ind     = M_Aiyagari.a_grid_fine.>=1000 ;
     grid_1M = M_Aiyagari.a_grid_fine[ind]   ;
     Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])        ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
-    CCDF_1M = 1 .- cumsum(Γ_a_1M)           ;
-    P_coeff = (log.(grid_1M[1:end-1]./1000)'*log.(grid_1M[1:end-1]./1000))\log.(grid_1M[1:end-1]./1000)'*log.(CCDF_1M[1:end-1])
+    CCDF_1M = 1 .- cumsum(Γ_a_1M)           ; 
+    ind     = CCDF_1M.>=1e-12               ;
+    P_coeff = (log.(grid_1M[ind]./1000)'*log.(grid_1M[ind]./1000))\log.(grid_1M[ind]./1000)'*log.(CCDF_1M[ind])
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    scatter( log.(grid_1M[ind]./1000) , log.(CCDF_1M[ind]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
     plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
+    annotate!(-log(1.3)+mean(log.(grid_1M[ind]./1000)),mean(log.(CCDF_1M[ind])),"α=$(round(P_coeff,digits=2))",12)
     xlabel!("Log Assets",labelsize=18)
     title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
+    ylims!( floor(minimum(log.(CCDF_1M[ind]))/4)*4 , 0 )
     xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
     xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_Pareto.pdf")
@@ -204,10 +179,41 @@ l = @layout [a  ; b  c]
 
 ###################################################################
 ###################################################################
+## Age Profiles 
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( 20:(19+M_Aiyagari.p.Max_Age) , age_profile_y , marker=(:circle ,5,:cornflowerblue),label=nothing)
+    ylims!(0,ceil(maximum(age_profile_y/10))*10)
+    title!("Age Profile: Labor Income",titlefont=14)
+    xlabel!("Age",labelsize=18); ylabel!("Thousands of Dollars",labelsize=18)
+    xticks!(20:10:100)
+    savefig("./"*Fig_Folder*"/Age_Profile_Y.pdf")
+
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( 20:(19+M_Aiyagari.p.Max_Age) , age_profile_a , marker=(:circle ,5,:cornflowerblue),label=nothing)
+    ylims!(0,ceil(maximum(age_profile_a/10))*10)
+    title!("Age Profile: Assets",titlefont=14)
+    xlabel!("Age",labelsize=18); ylabel!("Thousands of Dollars",labelsize=18)
+    xticks!(20:10:100)
+    savefig("./"*Fig_Folder*"/Age_Profile_a.pdf")
+
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    scatter( 20:(19+M_Aiyagari.p.Max_Age) , 100*(age_profile_ap./age_profile_a.-1) , marker=(:circle ,5,:cornflowerblue),label=nothing)
+    ylims!(floor(minimum(100*(age_profile_ap./age_profile_a.-1)/5))*5,ceil(maximum(100*(age_profile_ap./age_profile_a.-1)/5))*5)
+    title!("Age Profile: (agg) Savings Rate",titlefont=14)
+    xlabel!("Age",labelsize=18); ylabel!("Percentage Points",labelsize=18)
+    xticks!(20:10:100)
+    savefig("./"*Fig_Folder*"/Age_Profile_ap.pdf")
+###################################################################
+###################################################################
+
+
+
+###################################################################
+###################################################################
 ## Plot Saving Functions (median labor efficiency and interest rate)
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot(M_Aiyagari.a_grid_fine,M_Aiyagari.a_grid_fine,w=1,linecolor=:gray70,label=nothing,aspect_ratio=1,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
-    plot!(M_Aiyagari.a_grid_fine,M_Aiyagari.G_ap_fine[:,med_ϵ,med_ζ],w=2,linecolor=:cornflowerblue,label=nothing,aspect_ratio=1)
+    plot!(M_Aiyagari.a_grid_fine,M_Aiyagari.G_ap_fine[:,med_ϵ,ref_age],w=2,linecolor=:cornflowerblue,label=nothing,aspect_ratio=1)
     title!("Savings",titlefont=14)
     xlabel!("Assets (thousands of dollars)",labelsize=18)
     ylabel!("Assets (thousands of dollars)",labelsize=18)
@@ -217,8 +223,7 @@ l = @layout [a  ; b  c]
 
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     hline( [0] ,c=:gray70  ,w=1,label=nothing) 
-    plot!(log.(M_Aiyagari.a_grid_fine) , 100*(M_Aiyagari.G_ap_fine[:,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine.-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
-    #plot!(M_Aiyagari.a_grid_fine[25:end],100*(M_Aiyagari.G_ap_fine[25:end,med_ϵ,med_ζ]./M_Aiyagari.a_grid_fine[25:end]),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
+    plot!(log.(M_Aiyagari.a_grid_fine) , 100*(M_Aiyagari.G_ap_fine[:,med_ϵ,ref_age]./M_Aiyagari.a_grid_fine.-1),w=2,linecolor=:cornflowerblue,label=nothing,xlims=(M_Aiyagari.a_grid[1],M_Aiyagari.a_grid[end]))
     title!("Savings Rate",titlefont=14)
     xlabel!("(log) Assets",labelsize=18)
     ylabel!("Saving Rate (%)",labelsize=18)
@@ -234,15 +239,15 @@ l = @layout [a  ; b  c]
 ## Euler Errors plots
     Euler_perc_error = zeros(M_Aiyagari.n_a_fine,3)
     for i_a=1:M_Aiyagari.n_a_fine
-        # Euler percentage error (lowest points in ϵ and ζ grid)
-        Euler_perc_error[i_a,1] = Euler_Error(1,1,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
-        # Euler percentage error (median points in ϵ and ζ grid) 
-        Euler_perc_error[i_a,2] = Euler_Error(med_ϵ,med_ζ,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
-        # Euler percentage error (higest points in ϵ and ζ grid)
-        Euler_perc_error[i_a,3] = Euler_Error(M_Aiyagari.n_ϵ,M_Aiyagari.n_ζ,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
+        # Euler percentage error (lowest points in ϵ)
+        Euler_perc_error[i_a,1] = Euler_Error(1             ,ref_age,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
+        # Euler percentage error (median points in ϵ) 
+        Euler_perc_error[i_a,2] = Euler_Error(med_ϵ         ,ref_age,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
+        # Euler percentage error (higest points in ϵ)
+        Euler_perc_error[i_a,3] = Euler_Error(M_Aiyagari.n_ϵ,ref_age,M_Aiyagari.a_grid_fine[i_a],M_Aiyagari)
     end
     
-    # Plot: lowest ϵ, lowest ζ
+    # Plot: lowest ϵ
     ll = @layout [a ; b ; c]
     gr(ytickfontsize=10,xtickfontsize=10,xtick_direction=:out)
     p1_euler=
@@ -251,14 +256,14 @@ l = @layout [a  ; b  c]
     xlims!(log(0.8),log(M_Aiyagari.a_max)+0.2); xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
     ylims!(findmin(Euler_perc_error[:,1])[1],findmax(Euler_perc_error[:,1])[1])
     
-    # Plot: median ϵ, median ζ
+    # Plot: median ϵ
     p2_euler=
     scatter(log.(M_Aiyagari.a_grid_fine), Euler_perc_error[:,2],marker=(:circle ,3,:cornflowerblue),label=nothing)
     ylabel!("Percentage")
     xlims!(log(0.8),log(M_Aiyagari.a_max)+0.2); xticks!(log.([1,10,100,1000,10000,50000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$50m"])
     ylims!(findmin(Euler_perc_error[:,2])[1],findmax(Euler_perc_error[:,2])[1])
     
-    # Plot: highest ϵ, highest ζ
+    # Plot: highest ϵ
     p3_euler=
     scatter(log.(M_Aiyagari.a_grid_fine), Euler_perc_error[:,3],marker=(:circle ,3,:cornflowerblue),label=nothing)
     ylabel!("Percentage")
