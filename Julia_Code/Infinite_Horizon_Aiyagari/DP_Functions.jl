@@ -263,6 +263,39 @@ end
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
+# Histogram iteration method
+function Histogram_Iteration(M::Model,N_H,Γ_0)
+    @unpack n_ϵ, n_ζ, n_a_fine, H_ind,H_ω_lo,H_ω_hi = M
+
+    # println("\n--------------------------------\nBegining Histogram Iteration (N=$N_H)")
+
+    for i_H=1:N_H 
+        # Update histogram
+        Γ = zeros(n_a_fine,n_ϵ,n_ζ)
+        for i_ζ=1:n_ζ # Current ζ
+        for i_ϵ=1:n_ϵ # Current ϵ
+        for i_a=1:n_a_fine # Current a
+            i_ap = H_ind[i_a,i_ϵ,i_ζ]    ;
+            for i_ζp=1:n_ζ # Future ζ
+            for i_ϵp=1:n_ϵ # Future ϵ
+                # Update is the product of probabilities by independence of F(ϵ) and F(ζ)
+                Γ[i_ap,i_ϵp,i_ζp]   = Γ[i_ap  ,i_ϵp,i_ζp] + H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
+                Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
+            end
+            end
+        end
+        end
+        end
+        Γ_0 .= Γ 
+        # println("   Iteration $i_H")
+    end
+    # println("End of Histogram Iteration \n--------------------------------\n")
+    return Γ_0 
+end
+
+
+#-----------------------------------------------------------
+#-----------------------------------------------------------
 # Euler Error Function
 
 # G_ap interpolation
