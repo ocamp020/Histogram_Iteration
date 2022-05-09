@@ -270,22 +270,17 @@ function Histogram_Iteration(M::Model,N_H,Γ_0)
     # println("\n--------------------------------\nBegining Histogram Iteration (N=$N_H)")
 
     for i_H=1:N_H 
-        # Update histogram
+        # Update histogram - Loop only though points with enough mass
         Γ = zeros(n_a_fine,n_ϵ,n_ζ)
-        for i_ζ=1:n_ζ # Current ζ
-        for i_ϵ=1:n_ϵ # Current ϵ
-        for i_a=1:n_a_fine # Current a
-            i_ap = H_ind[i_a,i_ϵ,i_ζ]    ;
+        for ind in findall(>=(1e-12), Γ_0 )
+            i_ap = H_ind[ind]    ;
             for i_ζp=1:n_ζ # Future ζ
             for i_ϵp=1:n_ϵ # Future ϵ
-                # Update is the product of probabilities by independence of F(ϵ) and F(ζ)
-                Γ[i_ap,i_ϵp,i_ζp]   = Γ[i_ap  ,i_ϵp,i_ζp] + H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
-                Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
+                Γ[i_ap,i_ϵp,i_ζp]   = Γ[i_ap  ,i_ϵp,i_ζp] + H_ω_lo[ind,i_ϵp,i_ζp]*Γ_0[ind]
+                Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + H_ω_hi[ind,i_ϵp,i_ζp]*Γ_0[ind]
             end
             end
-        end
-        end
-        end
+        end 
         Γ_0 .= Γ 
         # println("   Iteration $i_H")
     end
