@@ -71,9 +71,9 @@ function PFI_Fixed_Point(T::Function,M::Model,G_ap_old=nothing)
             G_c_fine  = zeros(n_a_fine,n_ϵ,n_ζ)
             for i_ϵ=1:n_ϵ
             for i_ζ=1:n_ζ
-            G_ap_ip = ScaledInterpolations(a_grid,G_ap_new[:,i_ϵ,i_ζ] , BSpline(Cubic(Line(OnGrid()))))
+            G_ap_ip = ScaledInterpolations( a_grid , G_ap_new[:,i_ϵ,i_ζ] , BSpline(Cubic(Line(OnGrid()))))
                 G_ap_fine[:,i_ϵ,i_ζ].= G_ap_ip.(collect(a_grid_fine))
-            G_c_ip  = ScaledInterpolations(a_grid,G_c[:,i_ϵ,i_ζ]  , BSpline(Cubic(Line(OnGrid()))))
+            G_c_ip  = ScaledInterpolations( a_grid , G_c[:,i_ϵ,i_ζ] , BSpline(Cubic(Line(OnGrid()))))
                 G_c_fine[:,i_ϵ,i_ζ] .= G_c_ip.(collect(a_grid_fine))
             end
             end
@@ -142,9 +142,9 @@ function T_EGM_G(M::Model)
             A_aux = [a_vec ; A_aux]
             C_aux = [((r*M.ζ_mat[i_ζ].+1).*a_vec.+w*M.ϵ_grid[i_ϵ].-a_min) ; C_aux]
         end
-        C_ip        = Spline1D(A_aux,C_aux)
+        C_ip            = Spline1D(A_aux,C_aux)
         G_c[:,i_ϵ,i_ζ] .= C_ip.(M.a_grid)
-        Ap_aux      = (r*M.ζ_mat[i_ζ].+1).*collect(M.a_grid) .+ w*M.ϵ_grid[i_ϵ] .- G_c[:,i_ϵ,i_ζ]
+        Ap_aux          = (r*M.ζ_mat[i_ζ].+1).*collect(M.a_grid) .+ w*M.ϵ_grid[i_ϵ] .- G_c[:,i_ϵ,i_ζ]
     end
     end
     # Update policy function

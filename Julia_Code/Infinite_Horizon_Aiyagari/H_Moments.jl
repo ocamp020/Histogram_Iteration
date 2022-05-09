@@ -58,8 +58,19 @@ println("Autocorr of Consumption: 1st quintile")
 # Get average consumption and standard deviation 
     av_c = sum( M_Aiyagari.G_c_fine.*M_Aiyagari.Γ )                      ;
     sd_c = sqrt( sum( ((M_Aiyagari.G_c_fine.-av_c).^2).*M_Aiyagari.Γ ) ) ;
-    av_c_q = sum( M_Aiyagari.G_c_fine[1:deciles_a[3],:,:].*M_Aiyagari.Γ[1:deciles_a[3],:,:] )/sum( M_Aiyagari.Γ[1:deciles_a[3],:,:] ) ;
-    sd_c_q = sqrt( sum( ((M_Aiyagari.G_c_fine[1:deciles_a[3],:,:].-av_c_q).^2).*M_Aiyagari.Γ[1:deciles_a[3],:,:] )/sum( M_Aiyagari.Γ[1:deciles_a[3],:,:] ) ) ;
+    # First quintile distribution 
+    Γ_q                     = zeros(M_Aiyagari.n_a_fine,M_Aiyagari.n_ϵ,M_Aiyagari.n_ζ)   ; 
+    Γ_q[1:deciles_a[3],:,:] = M_Aiyagari.Γ[1:deciles_a[3],:,:]            ; 
+    Γ_q                     = Γ_q/sum(Γ_q) ; 
+    # First quintile consumption 
+    av_c_q = sum( M_Aiyagari.G_c_fine[1:deciles_a[3],:,:].*Γ_q[1:deciles_a[3],:,:] ) ;
+    sd_c_q = sqrt( sum( ((M_Aiyagari.G_c_fine[1:deciles_a[3],:,:].-av_c_q).^2).*Γ_q[1:deciles_a[3],:,:] ) ) ;
+    # Future average and standard deviation conditional on first quintile
+        # Iterate distribution 
+        Γ_qN = Histogram_Iteration(M_Aiyagari,n_H,Γ_q) ;
+        # Obtain consumption
+        av_c_q_N = sum( M_Aiyagari.G_c_fine.*Γ_qN  )                                   ;
+        sd_c_q_N = sqrt( sum( ((M_Aiyagari.G_c_fine.-av_c_q_N).^2).*Γ_qN  ) ) ; 
     
 
 # For each decile compute future consumption 
@@ -97,16 +108,15 @@ println("Autocorr of Consumption: 1st quintile")
             # Iterate distribution
             Γ_N = Histogram_Iteration(M_Aiyagari,n_H,Γ_0) ;
             # Get portion of integrand (C_0 - av_c)*(C_n - av_c)*Γ_n
-            cov_c[i_a,i_ϵ,i_ζ] = sum( (M_Aiyagari.G_c_fine[i_a,i_ϵ,i_ζ].-av_c_deciles[1])*(M_Aiyagari.G_c_fine.-av_c_deciles_N[1]).*Γ_N ) ;
+            cov_c[i_a,i_ϵ,i_ζ] = sum( ( M_Aiyagari.G_c_fine[i_a,i_ϵ,i_ζ].-av_c_q )*( M_Aiyagari.G_c_fine.-av_c_q_N ).*Γ_N ) ;
         end 
 
     end 
     end 
 
-# Integrate with respect to initial distribution 
-    # First decile 
-    cov_c_q  = sum( cov_c[1:deciles_a[2],:,:].*M_Aiyagari.Γ[1:deciles_a[2],:,:] )/sum( M_Aiyagari.Γ[1:deciles_a[2],:,:] )  ;
-    cor_c_q  = cov_c_q/sqrt(sd_c_deciles[1]^2*sd_c_deciles_N[1]^2)              ; 
+# Integrate with respect to initial distribution of first quintile
+    cov_c_q  = sum( cov_c.*Γ_q )  ;
+    cor_c_q  = cov_c_q/sqrt(sd_c_q^2*sd_c_q_N^2)      ; 
 
 # Print result
     println("   Average Consumption:  all - \$$(round(av_c,digits=2))k  // q1 - \$$(round(av_c_q[1],digits=2))k ")

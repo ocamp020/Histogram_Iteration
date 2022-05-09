@@ -159,4 +159,8 @@ include("Sol_Stats_Graphs.jl")
 include("H_Moments.jl")
 
 
+# Get moments from simulation
+include("S_Moments.jl")
+
+
 println("\n===============================================\n\n    End of Script \n\n===============================================")
