@@ -42,6 +42,7 @@ using Parameters # Pkg.add("Parameters") # https://github.com/mauro3/Parameter
 using Kronecker # Pkg.add("Kronecker") # https://michielstock.github.io/Kronecker.jl
 using DelimitedFiles
 using Printf
+using StatsBase
 
 # Load functions in VFI Toolbox
 include("../VFI_Toolbox.jl")
