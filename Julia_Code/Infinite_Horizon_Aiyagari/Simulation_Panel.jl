@@ -45,11 +45,11 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
     ζ_vec = Array{Int64}(undef,N_Panel)  ; 
 
     ## PDFs for ϵ and ζ
-    Γ_ϵ = MP_ϵ.Π
-    Γ_ζ = MP_ζ.Π
+    Γ_ϵ = MP_ϵ.Π ; 
+    Γ_ζ = MP_ζ.Π ; 
 
     ## Censor savings 
-    G_ap .= max.(G_ap,a_max)
+    G_ap .= min.(G_ap,a_max) ; 
 
     ## Draw initial conditions from stationary distribution (cross-section)
         println(" Initializing Simulation")
@@ -63,9 +63,10 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
         end 
 
     ## Iterate forward 
+    println(" Iterating Panel")
     for t = 1:T_Simul
         if mod(t,25)==0
-            println(" Simulation Period $t")
+            println("   Simulation Period $t")
         end
     # Simulate each dinsaty            
     for i = 1:N_Panel 
@@ -73,7 +74,7 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
         # Compute future assets
         if a_min<a_vec[i]<a_max 
         G_ap_ip   = ScaledInterpolations( a_grid , G_ap[:,ϵ_vec[i],ζ_vec[i]] , BSpline(Cubic(Line(OnGrid())))) ;
-        a_vec[i]  = G_ap_ip.( a_vec[i] ) ;
+        a_vec[i]  = G_ap_ip( a_vec[i] ) ;
         elseif  a_min==a_vec[i]
         a_vec[i]  = G_ap[1,ϵ_vec[i],ζ_vec[i]] ; 
         else 
@@ -88,7 +89,7 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
         if t>=T_Simul-(T_Panel-1)
             if a_min<a_vec[i]<a_max 
             G_c_ip    = ScaledInterpolations( a_grid , G_c[:,ϵ_vec[i],ζ_vec[i]] , BSpline(Cubic(Line(OnGrid())))) ; 
-            c_vec[i]  = G_c_ip.( a_vec[i] ) ;
+            c_vec[i]  = G_c_ip( a_vec[i] ) ;
             elseif  a_min==a_vec[i]
             c_vec[i]  = G_c[1,ϵ_vec[i],ζ_vec[i]] ; 
             else 
