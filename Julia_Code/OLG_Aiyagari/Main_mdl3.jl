@@ -162,4 +162,12 @@ println("===============================================\n")
 include("Sol_Stats_Graphs.jl")
 
 
+# # Get moments from histogram method
+# include("H_Moments.jl")
+
+
+# # Get moments from simulation
+# include("S_Moments.jl")
+
+
 println("\n===============================================\n\n    End of Script \n\n===============================================")

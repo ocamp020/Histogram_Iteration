@@ -310,6 +310,60 @@ function Histogram_Method_Loop(M::Model,Γ_0=nothing)
 end
 
 
+
+#-----------------------------------------------------------
+#-----------------------------------------------------------
+# Histogram iteration method
+function Histogram_Iteration(M::Model,N_H,Γ_0)
+    @unpack p, n_ϵ, n_ζ, n_a_fine, H_ind, H_ω_lo_s, H_ω_hi_s = M
+    @unpack Max_Age, Surv_Pr = p
+
+    # println("\n--------------------------------\nBegining Histogram Iteration (N=$N_H)")
+
+    # Set median ϵ for newborns:
+    med_ϵ = convert(Int64,round(n_ϵ/2));
+
+    # Set initial wealth to (close to) $1k 
+    b_ind = collect(1:n_a_fine)[a_grid_fine.>=1][1] ; 
+
+    for i_H=1:N_H 
+
+        # Update histogram - Loop only though points with enough mass
+        Γ = zeros(n_a_fine,n_ϵ,Max_Age) ;
+
+        for ind in findall(>=(1e-12), Γ_0 )
+        
+            if ind[3]<Max_Age # Before Max Age
+            
+            # Savings at current state 
+            i_ap = H_ind[ind] ; 
+
+            # If agents survive
+            for i_ϵp=1:n_ϵ # Future ϵ
+                Γ[i_ap  ,i_ϵp,ind[3]+1] = Γ[i_ap  ,i_ϵp,ind[3]+1] + H_ω_lo_s[ind,i_ϵp]*Γ_0[ind]
+                Γ[i_ap+1,i_ϵp,ind[3]+1] = Γ[i_ap+1,i_ϵp,ind[3]+1] + H_ω_hi_s[ind,i_ϵp]*Γ_0[ind]
+            end
+            # If agents die: age=1 and ϵ=median(ϵ) and no wealth 
+                Γ[b_ind,med_ϵ,1] = Γ[b_ind,med_ϵ,1] + (1-Surv_Pr[ind[3]])*Γ_0[ind]
+
+            else # Max Age, everyone dies 
+            
+                Γ[b_ind,med_ϵ,1] = Γ[b_ind,med_ϵ,1] + Γ_0[ind]
+
+            end 
+        end 
+        
+
+        # Update distribution 
+        Γ_0 .= Γ 
+        # println("   Iteration $i_H")
+    end
+
+    # println("End of Histogram Iteration \n--------------------------------\n")
+    return Γ_0 
+end
+
+
 #-----------------------------------------------------------
 #-----------------------------------------------------------
 # Euler Error Function
