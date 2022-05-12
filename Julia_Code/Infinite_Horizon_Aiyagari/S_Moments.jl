@@ -13,7 +13,7 @@
     M_P = Model_Panel() ; 
     M_P = Simulate_Panel(M_Aiyagari,M_P) ;
 
-    fig_sample = M_P.N_Min:1000:M_P.N_Panel ; 
+    fig_sample = [1000 ; collect(5000:5000:M_P.N_Panel)] ; 
     fig_N      = length(fig_sample)         ; 
 
     # Save Results 
@@ -39,40 +39,47 @@
     pct_S        = zeros(5,fig_N) ;
     Top_Shares_S = zeros(5,fig_N) ; 
     for i = 1:fig_N
-        a_aux       = M_P.a_mat[1:fig_sample[i],end] ;
-        av_a_S[i]   = mean( a_aux )                  ;
-        pct_S[:,i]  = percentile( a_aux , pct_list ) ;
-        Top_Shares_S[:,i] = [ 100*sum( a_aux[ a_aux.>=pct_S[p] ]  )/(fig_sample[i]*av_a_S[i])  for p in 1:5] ;
+        a_sample       = M_P.a_mat[1:fig_sample[i],end] ;
+        av_a_S[i]   = mean( a_sample )                  ;
+        pct_S[:,i]  = percentile( a_sample , pct_list ) ;
+        Top_Shares_S[:,i] = [ 100*sum( a_sample[ a_sample.>=pct_S[p] ]  )/(fig_sample[i]*av_a_S[i])  for p in 1:5] ;
     end 
+
+## Figures: Top percentiles 1% and 0.1%     
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
+    plot(  fig_sample/1000 , pct_S[3,:] , marker=(:circle ,3,:cornflowerblue),label=nothing)
+    hline!( [Top_shares[3,2]] ,c=:orange  , w=3 , label=nothing )
+    plot!( fig_sample/1000 , pct_S[4,:] , marker=(:circle ,3,:cornflowerblue),label=nothing)
+    hline!( [Top_shares[4,2]] ,c=:orange  , w=3 , label=nothing )
+    ylims!(floor(minimum(pct_S[3,:]/500))*500,ceil(maximum(pct_S[4,:]/500))*500)
+    xlims!(1,M_P.N_Panel/1000)
+    title!("99th and 99.9th percentiles",titlefont=14)
+    xlabel!("Sample Size: Thousands",labelsize=18)
+    savefig("./"*Fig_Folder*"/Top_pct_Simul.pdf")
+
 
 ## Figures: Top Shares 1% and 0.1%     
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot( fig_sample/1000 , Top_Shares_S[3,:] , marker=(:circle ,3,:cornflowerblue),label=nothing)
     hline!( [Top_shares[3,3]] ,c=:orange  , w=3 , label=nothing )
+    plot!( fig_sample/1000 , Top_Shares_S[4,:] , marker=(:circle ,3,:cornflowerblue),label=nothing)
+    hline!( [Top_shares[4,3]] ,c=:orange  , w=3 , label=nothing )
     ylims!(0,ceil(maximum(Top_Shares_S[3,:]/5))*5)
     xlims!(1,M_P.N_Panel/1000)
-    title!("Top 1% Share",titlefont=14)
+    title!("Top 1% and 0.1% Shares",titlefont=14)
     xlabel!("Sample Size: Thousands",labelsize=18)
-    savefig("./"*Fig_Folder*"/Top_Share_1_Simul.pdf")
+    savefig("./"*Fig_Folder*"/Top_Share_Simul.pdf")
 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot( fig_sample/1000 , Top_Shares_S[4,:] , marker=(:circle ,3,:cornflowerblue),label=nothing)
-    hline!( [Top_shares[4,3]] ,c=:orange  , w=3 , label=nothing )
-    ylims!(0,ceil(maximum(Top_Shares_S[4,:]/5))*5)
-    xlims!(1,M_P.N_Panel/1000)
-    title!("Top 0.1% Share",titlefont=14)
-    xlabel!("Sample Size: Thousands",labelsize=18)
-    savefig("./"*Fig_Folder*"/Top_Share_01_Simul.pdf")
 
 ###################################################################
 ###################################################################
 ## Lorenz Curve 
-    Lorenz_S = zeros(100,3) ; 
-    sample_vec = [10000, 50000, 100000] ; 
-    for i=1:3
-        a_aux       = M_P.a_mat[1:sample_vec[i],end]   ; av_a_aux = sum(a_aux) ;
-        p_aux       = percentile( a_aux , 1:100 )    ;
-        Lorenz_S[:,i] = [ 100*sum( a_aux[ a_aux.<=p_aux[p] ]  )/av_a_aux  for p in 1:100] ; 
+    Lorenz_S = zeros(100,4) ; 
+    sample_vec = [10000, 50000, 100000, 500000] ; 
+    for i=1:4
+        a_sample       = M_P.a_mat[1:sample_vec[i],end]   ; av_a_aux = sum(a_sample) ;
+        p_aux       = percentile( a_sample , 1:100 )    ;
+        Lorenz_S[:,i] = [ 100*sum( a_sample[ a_sample.<=p_aux[p] ]  )/av_a_aux  for p in 1:100] ; 
     end 
 
 ## Figure with Lorenz Curve for 10k, 50k, 100k    
@@ -82,6 +89,7 @@
     plot!( 1:100      , Lorenz_S[:,1] , w=2 , label=nothing ,aspect_ratio=1)   
     plot!( 1:100      , Lorenz_S[:,2] , w=2 , label=nothing ,aspect_ratio=1)   
     plot!( 1:100      , Lorenz_S[:,3] , w=2 , label=nothing ,aspect_ratio=1)   
+    plot!( 1:100      , Lorenz_S[:,4] , w=2 , label=nothing ,aspect_ratio=1)   
     title!("Lorenz curve",titlefont=14)
     ylims!(0,100); xlims!(0,100)
     savefig("./"*Fig_Folder*"/Distribution_Wealth_Lorenz_Simul.pdf")
@@ -101,17 +109,23 @@
     Pareto_p_50k = collect(length(Pareto_a_50k):-1:1)./length(Pareto_a_50k) ; # Counter CDF = 1- CDF
 
     # 100.000 observations 
-    Pareto_a_100k = M_P.a_mat[1:100000,end]                      ; # Select first 100.000 observations 
+    Pareto_a_100k = M_P.a_mat[1:100000,end]                       ; # Select first 100.000 observations 
     Pareto_a_100k = sort( Pareto_a_100k[ Pareto_a_100k.>=1000 ] ) ; # Select and sort observations above $1M  
     Pareto_p_100k = collect(length(Pareto_a_100k):-1:1)./length(Pareto_a_100k) ; # Counter CDF = 1- CDF
+
+    # 500.000 observations 
+    Pareto_a_500k = M_P.a_mat[1:500000,end]                       ; # Select first 500.000 observations 
+    Pareto_a_500k = sort( Pareto_a_500k[ Pareto_a_500k.>=1000 ] ) ; # Select and sort observations above $1M  
+    Pareto_p_500k = collect(length(Pareto_a_500k):-1:1)./length(Pareto_a_500k) ; # Counter CDF = 1- CDF
 
 ## Figure with all pareto tails 
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
     scatter!( log.(grid_1M[1:end-1]./1000)       , log.(CCDF_1M[1:end-1])       , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_10k[1:end-1]./1000)  , log.(Pareto_p_10k[1:end-1])  , marker=(:circle ,2)                 , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_50k[1:end-1]./1000)  , log.(Pareto_p_50k[1:end-1])  , marker=(:circle ,2)                 , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_100k[1:end-1]./1000) , log.(Pareto_p_100k[1:end-1]) , marker=(:circle ,2)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_10k[1:end-1]./1000)  , log.(Pareto_p_10k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_50k[1:end-1]./1000)  , log.(Pareto_p_50k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_100k[1:end-1]./1000) , log.(Pareto_p_100k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_500k[1:end-1]./1000) , log.(Pareto_p_500k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
     xlabel!("Log Assets",labelsize=18)
     title!("Distribution Tail",titlefont=14)
     ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
@@ -128,7 +142,7 @@
     for i=1:fig_N
         a_aux_0          = M_P.a_mat[1:fig_sample[i],1]   ;
         a_aux_T          = M_P.a_mat[1:fig_sample[i],end] ;
-        deciles_a_S[:,i] = percentile( a_aux_T , 0:10 )   ; # Deciles based on end of sample (hoping for stationariety)
+        deciles_a_S[:,i] = percentile( a_aux_T , 0:10:100 )   ; # Deciles based on end of sample (hoping for stationariety)
         for p=1:10
             ind_d = findall(x-> deciles_a_S[p]<=x<=deciles_a_S[p+1], a_aux_0 ) ; # Find "i" in each decile in t=1
             a_T = a_aux_T[ind_d] ; # Follow them to t=10
@@ -139,7 +153,7 @@
 ## Figure with transitions of bottom decile
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot( fig_sample/1000 , Tr_decicles_a_S[1,:,:]' ,label=nothing)
-    hline!( 100*[Tr_deciles_a[1,:]] ,c=:orange  , w=3 , label=nothing )
+    hline!( 100*[Tr_deciles_a[1,:]] , c=:orange , w=2 , label=nothing )
     ylims!(0,ceil(maximum(Tr_decicles_a_S[1,:,:]/5))*5)
     xlims!(1,M_P.N_Panel/1000)
     title!("1st Decile Transitions",titlefont=14)
@@ -149,10 +163,10 @@
 ## Figure with transitions of top decile
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
     plot( fig_sample/1000 , Tr_decicles_a_S[end,:,:]' ,label=nothing)
-    hline!( [Tr_deciles_a[end,:]] ,c=:orange  , w=3 , label=nothing )
-    ylims!(0,ceil(maximum(Tr_decicles_a_S[1,:,:]/5))*5)
+    hline!( 100*[Tr_deciles_a[end,:]] , c=:orange , w=2 , label=nothing )
+    ylims!(0,ceil(maximum(Tr_decicles_a_S[end,:,:]/5))*5)
     xlims!(1,M_P.N_Panel/1000)
-    title!("1st Decile Transitions",titlefont=14)
+    title!("10th Decile Transitions",titlefont=14)
     xlabel!("Sample Size: Thousands",labelsize=18)
     savefig("./"*Fig_Folder*"/Tr_Decile_10_Simul.pdf")
 
@@ -165,8 +179,8 @@
     cor_c_q_S = zeros(fig_N)      ; # Cor of Consumption in first quintile 
     for i=1:fig_N
         # Fix current sample 
-        a_aux_0       = M_P.a_mat[1:fig_sample[i],9]   ;
-        c_aux_0       = M_P.c_mat[1:fig_sample[i],9]   ;
+        a_aux_0       = M_P.a_mat[1:fig_sample[i],8]   ;
+        c_aux_0       = M_P.c_mat[1:fig_sample[i],8]   ;
         c_aux_T       = M_P.c_mat[1:fig_sample[i],end] ;
         # Find index of first quintile 
         ind_q         = findall(x-> 0<=x<=deciles_a_S[3], a_aux_0 ) ; # Index of first quintile of assets in T-1

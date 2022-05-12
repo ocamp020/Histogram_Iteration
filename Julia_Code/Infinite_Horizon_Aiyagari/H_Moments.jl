@@ -11,7 +11,7 @@
 println("\n===============================================")
 println("Computing transition matrix for deciles")
 # Set time horizon 
-    n_H = 10 ;
+    n_H = 9 ; # This goes n_H+1 periods ahead
 
 # Find deciles 
     deciles_a    = Array{Int64}(undef,11) ;
@@ -53,7 +53,7 @@ println("===============================================\n")
 println("\n===============================================")
 println("Autocorr of Consumption: 1st quintile")
 # Set time horizon 
-    n_H = 2 ;
+    n_H = 2 ; # This goes n_H+1 periods ahead
 
 # Get average consumption and standard deviation 
     av_c = sum( M_Aiyagari.G_c_fine.*M_Aiyagari.Γ )                      ;

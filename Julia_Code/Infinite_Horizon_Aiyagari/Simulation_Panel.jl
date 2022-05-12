@@ -9,10 +9,10 @@
 ## Generate structure for the panel using Parameters module
 @with_kw struct Model_Panel
     # Size 
-    N_Panel::Int64 = 100000  ; # Number of dynasties to be simulated 
+    N_Panel::Int64 = 500000 ; # Number of dynasties to be simulated 
     T_Panel::Int64 = 10      ; # Number of periods to be saved of the dynasties 
     T_Simul::Int64 = 2000    ; # Number of periods to be simulated 
-    N_Min::Int64   = 10000   ; # Minimum numberof dynasties for moments
+    N_Min::Int64   = 1000    ; # Minimum numberof dynasties for moments
     # Panel output 
     a_mat = Array{Float32}(undef,N_Panel,T_Panel) ; # Assets
     c_mat = Array{Float32}(undef,N_Panel,T_Panel) ; # Consumption 
@@ -31,7 +31,7 @@ end
 ## Simulate the panel 
 function Simulate_Panel(M::Model,M_P::Model_Panel)
     ## Unpack relevant objects from model 
-    @unpack p, MP_ϵ, MP_ζ, n_ϵ, n_ζ, ϵ_grid, ζ_grid, a_grid, a_grid_fine, a_max, Γ, G_ap, G_c = M
+    @unpack p, MP_ϵ, MP_ζ, a_grid, a_grid_fine, a_max, Γ, G_ap, G_ap_fine, G_c, n_a_fine, θ_a_f = M
     @unpack a_min = p
     @unpack N_Panel, T_Panel, T_Simul = M_P
 
@@ -49,7 +49,8 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
     Γ_ζ = MP_ζ.Π ; 
 
     ## Censor savings 
-    G_ap .= min.(G_ap,a_max) ; 
+    G_ap      .= max.( min.(G_ap,a_max)      , a_min ) ; 
+    G_ap_fine .= max.( min.(G_ap_fine,a_max) , a_min ) ; 
 
     ## Draw initial conditions from stationary distribution (cross-section)
         println(" Initializing Simulation")
@@ -61,25 +62,34 @@ function Simulate_Panel(M::Model,M_P::Model_Panel)
         Γ_aux     = Γ[:,ϵ_vec[i],ζ_vec[i]]./sum(Γ[:,ϵ_vec[i],ζ_vec[i]])    ; 
         a_vec[i]  = a_grid_fine[ rand(Categorical(Γ_aux)) ]                ;     
         end 
+        println("   E[a_0]=\$$(round(mean(a_vec),digits=2))k  E[ϵ_0]=$(round(mean(M.ϵ_grid[ϵ_vec]),digits=3))  E[ζ_0]=$(round(mean(M.ζ_grid[ζ_vec]),digits=3)) // max(a_0)=$(round(maximum(a_vec),digits=2))")
 
     ## Iterate forward 
     println(" Iterating Panel")
     for t = 1:T_Simul
-        if mod(t,25)==0
+        if mod(t,50)==0
             println("   Simulation Period $t")
+            println("       E[a_t]=\$$(round(mean(a_vec),digits=2))k  E[ϵ_t]=$(round(mean(M.ϵ_grid[ϵ_vec]),digits=3))  E[ζ_t]=$(round(mean(M.ζ_grid[ζ_vec]),digits=3)) // max(a_t)=$(round(maximum(a_vec),digits=2))")
         end
     # Simulate each dinsaty            
     for i = 1:N_Panel 
         
-        # Compute future assets
+        # Compute future assets: Linear interpolation (manually)
         if a_min<a_vec[i]<a_max 
-        G_ap_ip   = ScaledInterpolations( a_grid , G_ap[:,ϵ_vec[i],ζ_vec[i]] , BSpline(Cubic(Line(OnGrid())))) ;
-        a_vec[i]  = G_ap_ip( a_vec[i] ) ;
-        elseif  a_min==a_vec[i]
-        a_vec[i]  = G_ap[1,ϵ_vec[i],ζ_vec[i]] ; 
+            i_lo      = min(n_a_fine-1, Grid_Inv(a_vec[i],n_a_fine,θ_a_f,a_min,a_max) ) ;
+            ω         = min(1,max(0,(a_vec[i]-a_grid_fine[i_lo])/(a_grid_fine[i_lo+1]-a_grid_fine[i_lo]))) ; 
+            a_vec[i]  = ω*G_ap_fine[i_lo,ϵ_vec[i],ζ_vec[i]] + (1-ω)*G_ap_fine[i_lo+1,ϵ_vec[i],ζ_vec[i]]    ;
+            # # G_ap_ip   = ScaledInterpolations( a_grid , G_ap[:,ϵ_vec[i],ζ_vec[i]] , BSpline(Cubic(Line(OnGrid())))) ;
+            # G_ap_ip   = ScaledInterpolations( a_grid_fine , G_ap_fine[:,ϵ_vec[i],ζ_vec[i]] , BSpline(Linear()) ) ;
+            # a_vec[i]  = G_ap_ip( a_vec[i] ) ;
+        elseif  a_vec[i]==a_max 
+            a_vec[i]  = G_ap[end,ϵ_vec[i],ζ_vec[i]] ;
+        elseif  a_vec[i]==a_min 
+            a_vec[i]  = G_ap[ 1 ,ϵ_vec[i],ζ_vec[i]] ;
         else 
-        a_vec[i]  = G_ap[end,ϵ_vec[i],ζ_vec[i]] ;
+            error("Error in simulation: assets not working")
         end 
+        a_vec[i] = min(a_max,max(a_min,a_vec[i])) ;
     
         # Compute future ϵ[i] and ζ[i]
         ϵ_vec[i]  = rand(Categorical( Γ_ϵ[ϵ_vec[i],:] )) ;
