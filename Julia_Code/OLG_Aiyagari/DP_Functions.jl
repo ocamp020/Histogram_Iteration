@@ -315,7 +315,7 @@ end
 #-----------------------------------------------------------
 # Histogram iteration method
 function Histogram_Iteration(M::Model,N_H,Γ_0)
-    @unpack p, n_ϵ, n_ζ, n_a_fine, H_ind, H_ω_lo_s, H_ω_hi_s = M
+    @unpack p, n_ϵ, n_a_fine, H_ind, H_ω_lo_s, H_ω_hi_s, a_grid_fine = M
     @unpack Max_Age, Surv_Pr = p
 
     # println("\n--------------------------------\nBegining Histogram Iteration (N=$N_H)")
