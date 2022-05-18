@@ -39,6 +39,7 @@ using Parameters # Pkg.add("Parameters") # https://github.com/mauro3/Parameter
 using Kronecker # Pkg.add("Kronecker") # https://michielstock.github.io/Kronecker.jl
 using DelimitedFiles
 using Printf
+using StatsBase
 
 # Load functions in VFI Toolbox
 include("../VFI_Toolbox.jl")
@@ -162,12 +163,12 @@ println("===============================================\n")
 include("Sol_Stats_Graphs.jl")
 
 
-# # Get moments from histogram method
-# include("H_Moments.jl")
+# Get moments from histogram method
+include("H_Moments.jl")
 
 
-# # Get moments from simulation
-# include("S_Moments.jl")
+# Get moments from simulation
+include("S_Moments.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")
