@@ -12,15 +12,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-    cd()
-    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+#    cd()
+#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Baxter's Computer
-#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -66,9 +66,9 @@ include("Population_Setup.jl")
     @with_kw struct Par
         # Model Parameters
         β::Float64   = 0.94   ; # Discount factor
-        γ::Float64   = 2.0    ; # Relative risk aversion (utility) parameter
+        σ::Float64   = 2.0    ; # Relative risk aversion (utility) parameter
         χ::Float64   = 0.0    ; # Bequest motive factor 
-        γ_b::Float64 = 2.0    ; # Bequest motive curvature
+        σ_b::Float64 = 2.0    ; # Bequest motive curvature
         ρ_ϵ::Float64 = 0.963  ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162  ; # Standard deviation of labor efficiency innovation
         # Model prices (partial equilibrium)

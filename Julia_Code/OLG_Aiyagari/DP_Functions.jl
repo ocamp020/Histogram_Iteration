@@ -2,34 +2,34 @@
 #-----------------------------------------------------------
 # Utility function
 function utility(c,p::Par)
-    if p.γ>1
-    return (c).^(1-p.γ)/(1-p.γ)
+    if p.σ>1
+    return (c).^(1-p.σ)/(1-p.σ)
     else
     return log.(c)
     end
 end
 
 function d_utility(c,p::Par)
-    return (c).^(-p.γ)
+    return (c).^(-p.σ)
 end
 
 function d_utility_inv(x,p::Par)
-    return x.^(-1/p.γ)
+    return x.^(-1/p.σ)
 end
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
 # Warm Glow function
 function warm_glow(ap,p::Par)
-    if p.γ_b>1
-    return p.χ*(ap).^(1-p.γ_b)/(1-p.γ_b)
+    if p.σ_b>1
+    return p.χ*(ap).^(1-p.σ_b)/(1-p.σ_b)
     else
     return p.χ.*log.(c)
     end
 end
 
 function d_warm_glow(ap,p::Par)
-    return p.χ.*(ap).^(-p.γ_b)
+    return p.χ.*(ap).^(-p.σ_b)
 end
 
 #-----------------------------------------------------------

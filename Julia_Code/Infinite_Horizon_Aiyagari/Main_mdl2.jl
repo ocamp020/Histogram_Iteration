@@ -7,7 +7,7 @@
 #       3. Stochastic rate of returns
 # This scripts computes longitudinal moments for the model
 # 
-# Solve:   V(ζ,ϵ,a) = max{ ((1+r(ζ))a+wϵ̄ϵ-a')^(1-γ)/(1-γ) +beta*E[V(ζ',ϵ',a')|ζ,ϵ] }
+# Solve:   V(ζ,ϵ,a) = max{ ((1+r(ζ))a+wϵ̄ϵ-a')^(1-σ)/(1-σ) +beta*E[V(ζ',ϵ',a')|ζ,ϵ] }
 #           log(ϵ') = ρ_ϵ*log(ϵ) + η_ϵ; η_ϵ~N(0,σ_ϵ);
 #           r(ζ)    = exp(ζ)r⋆    
 #           log(ζ') = ρ_ζ*log(ζ) + η_ζ; η_ζ~N(0,σ_ζ); 
@@ -15,15 +15,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-    cd()
-    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+#    cd()
+#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -65,7 +65,7 @@ println(" ")
     @with_kw struct Par
         # Model Parameters
         β::Float64   = 0.94  ; # Discount factor
-        γ::Float64   = 2.0   ; # Relative risk aversion (utility) parameter
+        σ::Float64   = 2.0   ; # Relative risk aversion (utility) parameter
         ρ_ϵ::Float64 = 0.963 ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162 ; # Standard deviation of labor efficiency innovation
         ρ_ζ::Float64 = 0.70  ; # Persistence of interest rate target pareto coefficient of 1.8

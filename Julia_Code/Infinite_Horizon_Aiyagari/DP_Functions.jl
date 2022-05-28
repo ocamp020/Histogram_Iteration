@@ -2,19 +2,19 @@
 #-----------------------------------------------------------
 # Utility function
 function utility(c,p::Par)
-    if p.γ>1
-    return (c).^(1-p.γ)/(1-p.γ)
+    if p.σ>1
+    return (c).^(1-p.σ)/(1-p.σ)
     else
     return log.(c)
     end
 end
 
 function d_utility(c,p::Par)
-    return (c).^(-p.γ)
+    return (c).^(-p.σ)
 end
 
 function d_utility_inv(x,p::Par)
-    return x.^(-1/p.γ)
+    return x.^(-1/p.σ)
 end
 
 #-----------------------------------------------------------
@@ -206,7 +206,7 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
             ω_lo               = min(1,max(0,(G_ap_fine[i_a,i_ϵ,i_ζ]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])/(a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]+1]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])))
         end
 
-        # Sotre weights for lower and upper bounds on approxiamtion interval, including transition to future states 
+        # Store weights for lower and upper bounds on approximation interval, including transition to future states 
         for i_ζp=1:n_ζ # Future ζ
         for i_ϵp=1:n_ϵ # Future ϵ
             H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp] = (  ω_lo)*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp]
@@ -253,7 +253,7 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         end
         # Check convergence
         if H_dist<Hist_tol
-            @printf("Histogram iteartion converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
+            @printf("Histogram iteration converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo=H_ω_lo, H_ω_hi=H_ω_hi)
             return M
         end
