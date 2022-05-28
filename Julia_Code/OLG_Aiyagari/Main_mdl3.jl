@@ -67,8 +67,6 @@ include("Population_Setup.jl")
         # Model Parameters
         β::Float64   = 0.94   ; # Discount factor
         σ::Float64   = 2.0    ; # Relative risk aversion (utility) parameter
-        χ::Float64   = 0.0    ; # Bequest motive factor 
-        σ_b::Float64 = 2.0    ; # Bequest motive curvature
         ρ_ϵ::Float64 = 0.963  ; # Persistence of labor efficiency process
         σ_ϵ::Float64 = 0.162  ; # Standard deviation of labor efficiency innovation
         # Model prices (partial equilibrium)

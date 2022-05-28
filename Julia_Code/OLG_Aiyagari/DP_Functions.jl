@@ -19,21 +19,6 @@ end
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
-# Warm Glow function
-function warm_glow(ap,p::Par)
-    if p.σ_b>1
-    return p.χ*(ap).^(1-p.σ_b)/(1-p.σ_b)
-    else
-    return p.χ.*log.(c)
-    end
-end
-
-function d_warm_glow(ap,p::Par)
-    return p.χ.*(ap).^(-p.σ_b)
-end
-
-#-----------------------------------------------------------
-#-----------------------------------------------------------
 # Policy function: PFI Fixed Point 
 function Solve_Policy_Functions(T::Function,M::Model)
     # Unpack model structure
@@ -85,48 +70,15 @@ function T_BI_G(M::Model)
     G_c  = Array{Float64}(undef,n_a,n_ϵ,Max_Age)
     G_ap = Array{Float64}(undef,n_a,n_ϵ,Max_Age)
 
-    ## Warm Glow vector and matrix 
-        warm_glow_vec = d_warm_glow(a_grid,p)       ;
-        warm_glow_mat = repeat(warm_glow_vec,1,n_ϵ) ;
-
-    ## Final Period 
-        if p.χ>0 # Check for warm glow bequest motive 
-
-        # Endogenous consumption for all levels of bequests (ap)
-        C_endo = d_utility_inv( β*warm_glow_vec , p)
-        # Define endogenous grid on assets
-        A_endo = ( repeat( C_endo.+ a_grid ,1,n_ϵ) - y_mat[:,:,Max_Age] )./(1+r)
-        # Interpolate functions on exogenous grid
-        for i_ϵ=1:n_ϵ
-            # Sort A_endo for interpolation
-            sort_ind = sortperm(A_endo[:,i_ϵ])
-            A_aux    = A_endo[:,i_ϵ][sort_ind]
-            C_aux    = C_endo[sort_ind]
-            # Check boundary condition
-            if minimum(A_aux)>a_min
-                a_vec = M.a_grid[a_grid.<minimum(A_aux)]
-                A_aux = [a_vec ; A_aux]
-                C_aux = [((1+r).*a_vec.+y_mat[1,i_ϵ,Max_Age].-a_min) ; C_aux]
-            end
-            C_ip                 = Spline1D(A_aux,C_aux)
-            G_c[:,i_ϵ,Max_Age]  .= C_ip.(M.a_grid)
-            G_ap[:,i_ϵ,Max_Age] .= (1+r).*collect(a_grid) .+ y_mat[:,i_ϵ,Max_Age] .- G_c[:,i_ϵ,Max_Age]
-        end
-
-        else 
-            
-            println("   age = $Max_Age - No bequest motive, setting savings to zero")
-            G_c[:,:,Max_Age]  .= (1+r).*a_mat_aϵ .+ y_mat[:,:,Max_Age] .- a_min
-            G_ap[:,:,Max_Age] .= a_min 
-
-        end 
-
-
+    ## Final Period savings are zero
+        G_c[:,:,Max_Age]  .= (1+r).*a_mat_aϵ .+ y_mat[:,:,Max_Age] .- a_min
+        G_ap[:,:,Max_Age] .= a_min 
+    
     ## Backwards Induction Loop 
     for age in (Max_Age-1):-1:1
         # Define RHS of Euler equation for each (a',ϵ,age)
             # The matrix d_utility is (a',ϵ') for a given age, the transition matrix is transposed so that it gives (ϵ',ϵ), result is (a',ϵ)
-        Euler_RHS = β*( Surv_Pr[age]*(1+r).* d_utility( (1+r).*a_mat_aϵ + y_mat[:,:,age+1] - G_ap[:,:,age+1] , p )*(MP_ϵ.Π)'  .+ (1 .- Surv_Pr[age]).*warm_glow_mat  )
+        Euler_RHS = β*( Surv_Pr[age]*(1+r).* d_utility( (1+r).*a_mat_aϵ + y_mat[:,:,age+1] - G_ap[:,:,age+1] , p )*(MP_ϵ.Π)'  )
         # Check Monotonicity
         if any( Euler_RHS.<0 )
             error("RHS must be monotone for EGM to work")
@@ -396,11 +348,11 @@ function Euler_Error(i_ϵ::Int64,age::Int64,a,M::Model)
         for i_ϵp=1:n_ϵ
         cp  = (1+r)*ap + y_mat[1,i_ϵp,age+1] - G_ap_ϵa(age+1,i_ϵp,ap,M)
         up  = d_utility(cp,p)
-        RHS_prob[i_ϵp] = β*( Surv_Pr[age]*MP_ϵ.Π[i_ϵ,i_ϵp]*(1+r)*up + (1-Surv_Pr[age])*d_warm_glow(ap,p) )
+        RHS_prob[i_ϵp] = β*( Surv_Pr[age]*MP_ϵ.Π[i_ϵ,i_ϵp]*(1+r)*up )
         end
     RHS = sum(RHS_prob)
     else 
-    RHS = β*( d_warm_glow(ap,p) )
+    RHS = 0.0
     end 
     # Return percentage errror in Euler equation
     return (RHS/LHS-1)*100
