@@ -56,7 +56,7 @@ println(" ")
 #-----------------------------------------------------------
 #-----------------------------------------------------------
 # Load function with population and survival probabilities
-include("Population_Setup.jl")
+include("Setup_Demographics.jl")
 
 #-----------------------------------------------------------
 #-----------------------------------------------------------
@@ -145,8 +145,8 @@ p = Par();
 
 M = Model();
 
-# Load functions in DP_Functions (solve the model and find stationary distribution)
-include("DP_Functions.jl")
+# Load functions in Functions_ModelSolution (solve the model and find stationary distribution)
+include("Functions_ModelSolution.jl")
 
 
 # Execute model solution 
@@ -158,15 +158,15 @@ println("===============================================\n")
 
 
 # Get stats and graphs for the solution of the model 
-include("Sol_Stats_Graphs.jl")
+include("PrintStats_MakeGraphs.jl")
 
 
 # Get moments from histogram method
-include("H_Moments.jl")
+include("CalculateMoments_Histogram.jl")
 
 
 # Get moments from simulation
-include("S_Moments.jl")
+include("CalculateMoments_MonteCarlo.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")

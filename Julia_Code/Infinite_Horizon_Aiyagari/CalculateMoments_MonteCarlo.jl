@@ -1,13 +1,13 @@
 ###################################################################
 ###################################################################
 ###################################################################
-## Compute moments using the histogram iteration method 
+## Compute moments using the Monte-Carlo method 
 
 
 ###################################################################
 ###################################################################
 ## Add Simulation Functions
-    include("Simulation_Panel.jl")
+    include("Functions_MonteCarlo.jl")
 
 ## Run Simulations
     M_P = Model_Panel() ; 
