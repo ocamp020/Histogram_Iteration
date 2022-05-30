@@ -253,7 +253,7 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         end
         # Check convergence
         if H_dist<Hist_tol
-            @printf("Histogram iteration converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
+            @printf("\nHistogram iteration converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo=H_ω_lo, H_ω_hi=H_ω_hi)
             return M
         end
@@ -337,11 +337,12 @@ function Aiyagari_Equilibrium(M_in::Model)
     # Read files if required 
     if M_in.read_flag
         G_ap_0 = reshape( readdlm(File_Folder*"/Policy_Function.csv", ',', Float64) ,M_in.n_a     , M.n_ϵ, M.n_ζ );
-        Γ_0    = reshape( readdlm(File_Folder*"/Distribution.csv"   , ',', Float64) ,M_in.n_a_fine, M.n_ϵ, M.n_ζ );
+        # Γ_0    = reshape( readdlm(File_Folder*"/Distribution.csv"   , ',', Float64) ,M_in.n_a_fine, M.n_ϵ, M.n_ζ );
     else 
         G_ap_0 = nothing ;
-        Γ_0    = nothing ;
+        # Γ_0    = nothing ;
     end 
+    Γ_0    = nothing ;
 
     # Compute Policy Functions
     M_in   = PFI_Fixed_Point(T_EGM_G,M_in,G_ap_0) ;
@@ -353,9 +354,9 @@ function Aiyagari_Equilibrium(M_in::Model)
     open(File_Folder*"/Policy_Function.csv", "w") do io
         writedlm(io, M_in.G_ap , ',')
     end;
-    open(File_Folder*"/Distribution.csv", "w") do io
-        writedlm(io, M_in.Γ , ',')
-    end;
+    # open(File_Folder*"/Distribution.csv", "w") do io
+    #     writedlm(io, M_in.Γ , ',')
+    # end;
 
     return M_in
 end

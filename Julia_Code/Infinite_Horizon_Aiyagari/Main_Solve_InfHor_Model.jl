@@ -15,15 +15,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-#    cd()
-#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+   cd()
+   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    # cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -43,6 +43,7 @@ using Kronecker # Pkg.add("Kronecker") # https://michielstock.github.io/Kronecke
 using DelimitedFiles
 using Printf
 using StatsBase
+using TimerOutputs # Pkg.add("TimerOutputs")
 
 # Load functions in VFI Toolbox
 include("../VFI_Toolbox.jl")
@@ -82,8 +83,8 @@ println(" ")
         η                   = 0.10  ; # Dampen factor
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
-        Hist_tol            = 1E-6  ; # Tolerance for distance
-        Hist_η              = 0.0   ; # Dampen factor
+        Hist_tol            = 5E-6  ; # Tolerance for distance
+        Hist_η              = 0.1   ; # Dampen factor
         # Minimum consumption for numerical optimization
         c_min::Float64      = 1E-16
     end
@@ -143,6 +144,9 @@ M = Model();
 # Load functions in Functions_ModelSolution (solve the model and find stationary distribution)
 include("Functions_ModelSolution.jl")
 
+# Load functions in Functions_Montecarlo (Simulate panels of individual agents)
+include("Functions_MonteCarlo.jl")
+
 
 # Execute model solution 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
@@ -152,16 +156,16 @@ println("\n===============================================\n Solving Aiyagari wi
 println("===============================================\n")
 
 
-# Get stats and graphs for the solution of the model 
-include("PrintStats_MakeGraphs.jl")
+# # Get stats and graphs for the solution of the model 
+# include("PrintStats_MakeGraphs.jl")
 
 
-# Get moments from histogram method
-include("CalculateMoments_Histogram.jl")
+# # Get moments from histogram method
+# include("CalculateMoments_Histogram.jl")
 
 
-# Get moments from simulation
-include("CalculateMoments_MonteCarlo.jl")
+# # Get moments from simulation
+# include("CalculateMoments_MonteCarlo.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")
