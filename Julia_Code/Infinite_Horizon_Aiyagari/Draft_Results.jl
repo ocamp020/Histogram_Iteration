@@ -192,24 +192,24 @@ end
 
     # Set up model structures 
     M_Simul = Model(method=1,read_flag=true) ;
-    M_Panel = Model_Panel(N_Panel=10000)   ; 
+    M_Panel = Model_Panel(N_Panel=1000000)   ; 
 
     # Set up discrete observations 
     S_sample = 1000:1000:M_Panel.N_Panel ; 
     N_S      = length(S_sample)          ;
     pct_list = [90;95;99;99.9;99.99]     ;  
 
-    S_M_timed      = zeros(n_S,3)     ; 
-    S_M_bytes      = zeros(n_S,3)     ;
+    S_M_timed      = zeros(N_S,3)     ; 
+    S_M_bytes      = zeros(N_S,3)     ;
     
-    S_Wealth_Stats = zeros(n_S,6)     ; 
-    S_Wealth_Share = zeros(n_S,5)     ; 
-    H_Pareto_Coeff = zeros(n_S  )     ;  
+    S_Wealth_Stats = zeros(N_S,6)     ; 
+    S_Wealth_Share = zeros(N_S,5)     ; 
+    H_Pareto_Coeff = zeros(N_S  )     ;  
 
-    H_Decile       = zeros(11,n_S)    ;
-    H_Decile_Tr    = zeros(10,10,n_S) ;
+    H_Decile       = zeros(11,N_S)    ;
+    H_Decile_Tr    = zeros(10,10,N_S) ;
 
-    H_Cons_Corr    = zeros(n_S)       ;
+    H_Cons_Corr    = zeros(N_S)       ;
     
     # Solve model 
     M_Simul, S_Γ_timed, S_Γ_bytes = @timed Aiyagari_Equilibrium(M_Simul);
@@ -222,7 +222,7 @@ end
 
     # 1-2) Top Wealth Shares and Pareto Coefficient 
     for i=1:N_S 
-        tic()
+        a, S_M_timed[i,1], S_M_bytes[i,1] = @timed begin 
 
         # Select sample 
         a_sample  = M_Panel.a_mat[1:S_sample[i],end] ;
@@ -242,13 +242,13 @@ end
         H_Pareto_Coeff[i] = (log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_sample[1:end-1]./1000))\log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_CCDF[1:end-1]) ;
 
         # Time it 
-        S_M_timed[i,1] = toc() ; 
+        end
     end 
 
 
     # 3) Decile Transitions 
     for i=1:N_S 
-        tic()
+        a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
 
         a_aux_0       = M_Panel.a_mat[1:S_sample[i],1]   ;
         a_aux_T       = M_Panel.a_mat[1:S_sample[i],end] ;
@@ -260,13 +260,13 @@ end
         end 
 
         # Time it 
-        S_M_timed[i,2] = toc() ; 
+        end
     end 
     
     
     # 4) Consumption Autocorrelation for first quintile
     for i=1:N_S 
-        tic()
+        a, S_M_timed[i,3], S_M_bytes[i,3] = @timed begin 
 
         # Fix current sample 
         a_aux_0       = M_Panel.a_mat[1:fig_sample[i],8]   ;
@@ -278,7 +278,7 @@ end
         S_Cons_Corr[i]= cor( [c_aux_0[ind_q] c_aux_T[ind_q]]  ;dims=1)[2]              ;  
 
         # Time it 
-        S_M_timed[i,3] = toc() ; 
+        end  
     end 
 
 
@@ -455,3 +455,6 @@ end
     Mat = [ H_Cons_Corr[1]  H_Cons_Corr[4]  H_Cons_Corr[9]   S_Cons_Corr[10]                 S_Cons_Corr[100]                 S_Cons_Corr[500] ;
             H_Γ_timed[1]    H_Γ_timed[4]    H_Γ_timed[9]     S_Γ_timed+M_Panel.t_vec[10000]  S_Γ_timed+M_Panel.t_vec[100000]  S_Γ_timed+M_Panel.t_vec[500000] ;
             H_Timed[1,3]    H_Timed[4,3]    H_Timed[9,3]     S_M_timed[10,3]                 S_M_timed[100,3]                 S_M_timed[500,3]   ] ;
+
+
+ 

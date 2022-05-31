@@ -168,4 +168,8 @@ println("===============================================\n")
 # include("CalculateMoments_MonteCarlo.jl")
 
 
+# Run Draft Moments for Graphs and Tables 
+include("Draft_Results.jl")
+
+
 println("\n===============================================\n\n    End of Script \n\n===============================================")

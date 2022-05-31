@@ -149,11 +149,11 @@ function Simulate_Panel_Dynasty(M::Model,M_P::Model_Panel)
 
     
     ## Iterate forward 
-    tic()
     println(" Iterating Dynasties")          
     for i = 1:N_Panel 
+        aa, M_P.t_vec[i] = @timed begin 
         
-        if mod(i,250)==0
+        if mod(i,1000)==0
             println("   Dynasty $i")
         end
 
@@ -167,9 +167,9 @@ function Simulate_Panel_Dynasty(M::Model,M_P::Model_Panel)
         
 
     for t = 1:T_Simul
-        if mod(t,100)==0
-            println("   Simulation Period $t")
-        end
+        # if mod(t,100)==0
+        #     println("   Simulation Period $t")
+        # end
         
         # Compute future assets: Linear interpolation (manually)
         if a_min<a_vec<a_max 
@@ -203,15 +203,15 @@ function Simulate_Panel_Dynasty(M::Model,M_P::Model_Panel)
 
         ## Save results in panel  
         if t>=T_Simul-(T_Panel-1)
-            M_P.a_mat[i,t-(T_Simul-T_Panel)] .= a_vec ; # Assets 
-            M_P.ϵ_mat[i,t-(T_Simul-T_Panel)] .= ϵ_vec ; # Labor efficiency
-            M_P.ζ_mat[i,t-(T_Simul-T_Panel)] .= ζ_vec ; # Returns
-            M_P.c_mat[i,t-(T_Simul-T_Panel)] .= c_vec ; # Consumption 
+            M_P.a_mat[i,t-(T_Simul-T_Panel)] = a_vec ; # Assets 
+            M_P.ϵ_mat[i,t-(T_Simul-T_Panel)] = ϵ_vec ; # Labor efficiency
+            M_P.ζ_mat[i,t-(T_Simul-T_Panel)] = ζ_vec ; # Returns
+            M_P.c_mat[i,t-(T_Simul-T_Panel)] = c_vec ; # Consumption 
         end 
     end
 
     # Save Time 
-    M_P.t_vec[i] = toc() ; 
+    end 
     end 
 
     return M_P ;
