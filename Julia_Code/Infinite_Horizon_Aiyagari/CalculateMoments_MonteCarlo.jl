@@ -6,9 +6,6 @@
 
 ###################################################################
 ###################################################################
-## Add Simulation Functions
-    include("Functions_MonteCarlo.jl")
-
 ## Run Simulations
     M_P = Model_Panel() ; 
     M_P = Simulate_Panel(M_Aiyagari,M_P) ;

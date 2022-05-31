@@ -62,7 +62,7 @@ println("===============================================\n")
     Top_shares = zeros(5,3) ; 
         Top_shares[:,1] = [90;95;99;99.9;99.99];
         for i=1:5 
-            ind_top = CDF_a.>=Top_shares[i,1]/100
+            ind_top = CDF_a.>=Top_shares[i,1]/100 ;
             Top_shares[i,2] = M_Aiyagari.a_grid_fine[ind_top][1] ;
             Top_shares[i,3] = 100*sum( M_Aiyagari.a_grid_fine[ind_top].*Γ_a[ind_top] )/av_a ; 
         end
