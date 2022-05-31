@@ -377,12 +377,12 @@ function Aiyagari_Equilibrium(M_in::Model)
     M_in  = Histogram_Method_Loop(M_in,Γ_0) ;
 
     # Save Results 
-    open(File_Folder*"/Policy_Function.csv", "w") do io
-        writedlm(io, M_in.G_ap , ',')
-    end;
-    open(File_Folder*"/Distribution.csv", "w") do io
-        writedlm(io, M_in.Γ , ',')
-    end;
+    # open(File_Folder*"/Policy_Function.csv", "w") do io
+    #     writedlm(io, M_in.G_ap , ',')
+    # end;
+    # open(File_Folder*"/Distribution.csv", "w") do io
+    #     writedlm(io, M_in.Γ , ',')
+    # end;
 
     return M_in
 end

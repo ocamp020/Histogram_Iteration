@@ -12,15 +12,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-#    cd()
-#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+   cd()
+   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Baxter's Computer
-    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+    # cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -76,7 +76,7 @@ include("Setup_Demographics.jl")
         a_min::Float64 = 1E-4 ; # Borrowing constraint
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
-        Hist_tol            = 1E-7  ; # Tolerance for distance
+        Hist_tol            = 1E-6  ; # Tolerance for distance
         Hist_η              = 0.00  ; # Dampen factor
         # Minimum consumption for numerical optimization
         c_min::Float64      = 1E-16 ; 
@@ -157,16 +157,23 @@ println("\n===============================================\n Solving Aiyagari wi
 println("===============================================\n")
 
 
-# Get stats and graphs for the solution of the model 
-include("PrintStats_MakeGraphs.jl")
+# # Get stats and graphs for the solution of the model 
+# include("PrintStats_MakeGraphs.jl")
 
 
-# Get moments from histogram method
-include("CalculateMoments_Histogram.jl")
+# # Get moments from histogram method
+# include("CalculateMoments_Histogram.jl")
 
 
-# Get moments from simulation
-include("CalculateMoments_MonteCarlo.jl")
+# # Get moments from simulation
+# include("CalculateMoments_MonteCarlo.jl")
+
+# Add Simulation Functions
+include("Functions_MonteCarlo.jl")
+
+
+# Run Draft Moments for Graphs and Tables 
+include("Draft_Results.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")
