@@ -23,7 +23,9 @@
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+#    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+# Compute Canada Server
+    cd("/scratch/robin370/SIM_TestRun/Histogram_Iteration/Infinite_Horizon_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
@@ -43,6 +45,7 @@ using Kronecker # Pkg.add("Kronecker") # https://michielstock.github.io/Kronecke
 using DelimitedFiles
 using Printf
 using StatsBase
+using Distributions
 
 # Load functions in VFI Toolbox
 include("../VFI_Toolbox.jl")
