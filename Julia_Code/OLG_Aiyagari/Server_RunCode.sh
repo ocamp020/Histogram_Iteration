@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=HistIterInfHor
+#SBATCH --job-name=HistIterOLG
 #SBATCH --account=def-robin370
 #SBATCH --mail-type=ALL                  
 #SBATCH --mail-user=brobin63@uwo.ca
@@ -13,7 +13,7 @@
 
 module load julia/1.7.0
 
-julia Main_Solve_InfHor_Model.jl
+julia Main_Solve_OLG_Model.jl
 
 
 module unload julia/1.7.0

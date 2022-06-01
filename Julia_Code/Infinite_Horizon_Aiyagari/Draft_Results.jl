@@ -204,12 +204,12 @@ end
     
     S_Wealth_Stats = zeros(N_S,6)     ; 
     S_Wealth_Share = zeros(N_S,5)     ; 
-    H_Pareto_Coeff = zeros(N_S  )     ;  
+    S_Pareto_Coeff = zeros(N_S  )     ;  
 
-    H_Decile       = zeros(11,N_S)    ;
-    H_Decile_Tr    = zeros(10,10,N_S) ;
+    S_Decile       = zeros(11,N_S)    ;
+    S_Decile_Tr    = zeros(10,10,N_S) ;
 
-    H_Cons_Corr    = zeros(N_S)       ;
+    S_Cons_Corr    = zeros(N_S)       ;
     
     # Solve model 
     M_Simul, S_Γ_timed, S_Γ_bytes = @timed Aiyagari_Equilibrium(M_Simul);
@@ -239,7 +239,7 @@ end
         # Pareto Coefficient 
         Pareto_sample = sort( a_sample[ a_sample.>=1000 ] ) ; # Select and sort observations above $1M  
         Pareto_CCDF   = collect(length(Pareto_sample):-1:1)./length(Pareto_sample) ; # Counter CDF = 1- CDF
-        H_Pareto_Coeff[i] = (log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_sample[1:end-1]./1000))\log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_CCDF[1:end-1]) ;
+        S_Pareto_Coeff[i] = (log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_sample[1:end-1]./1000))\log.(Pareto_sample[1:end-1]./1000)'*log.(Pareto_CCDF[1:end-1]) ;
 
         # Time it 
         end
@@ -252,11 +252,11 @@ end
 
         a_aux_0       = M_Panel.a_mat[1:S_sample[i],1]   ;
         a_aux_T       = M_Panel.a_mat[1:S_sample[i],end] ;
-        H_Decile[:,i] = percentile( a_aux_T , 0:10:100 ) ; # Deciles based on end of sample (hoping for stationariety)
+        S_Decile[:,i] = percentile( a_aux_T , 0:10:100 ) ; # Deciles based on end of sample (hoping for stationariety)
         for p=1:10
-            ind_d = findall(x-> H_Decile[p,i]<=x<=H_Decile[i,p+1], a_aux_0 ) ; # Find "i" in each decile in t=1
+            ind_d = findall(x-> S_Decile[p,i]<=x<=S_Decile[p+1,i], a_aux_0 ) ; # Find "i" in each decile in t=1
             a_T   = a_aux_T[ind_d] ; # Follow them to t=10
-            H_Decile_Tr[p,:,i] = [100*sum( H_Decile[pT,i].<=a_T.<=H_Decile[pT+1,i] )/length(ind_d) for pT in 1:10] ; # Get transition rates 
+            S_Decile_Tr[p,:,i] = [100*sum( S_Decile[pT,i].<=a_T.<=S_Decile[pT+1,i] )/length(ind_d) for pT in 1:10] ; # Get transition rates 
         end 
 
         # Time it 
@@ -269,9 +269,9 @@ end
         a, S_M_timed[i,3], S_M_bytes[i,3] = @timed begin 
 
         # Fix current sample 
-        a_aux_0       = M_Panel.a_mat[1:fig_sample[i],8]   ;
-        c_aux_0       = M_Panel.c_mat[1:fig_sample[i],8]   ;
-        c_aux_T       = M_Panel.c_mat[1:fig_sample[i],end] ;
+        a_aux_0       = M_Panel.a_mat[1:S_sample[i],8]   ;
+        c_aux_0       = M_Panel.c_mat[1:S_sample[i],8]   ;
+        c_aux_T       = M_Panel.c_mat[1:S_sample[i],end] ;
         # Find index of first quintile 
         ind_q         = findall(x-> 0<=x<=S_Decile[3,i], a_aux_0 ) ; # Index of first quintile of assets in T-1
         # Compute moments 
@@ -330,6 +330,7 @@ end
     # Results from Histogram 
     ind     = M_Simul.a_grid_fine.>=1000 ;
     grid_1M = M_Simul.a_grid_fine[ind]   ;
+    Γ_a     = dropdims( sum( M_Simul.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
     Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])     ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
     CCDF_1M = 1 .- cumsum(Γ_a_1M)        ;
     P_coeff = (log.(grid_1M[1:end-1]./1000)'*log.(grid_1M[1:end-1]./1000))\log.(grid_1M[1:end-1]./1000)'*log.(CCDF_1M[1:end-1])
