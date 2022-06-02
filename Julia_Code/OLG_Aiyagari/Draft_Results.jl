@@ -225,7 +225,7 @@ end
             S_Wealth_Profile_45[age,  end  ,i]  = mean( a_sample[ind_alive,age]  ) ;
 
         else 
-            S_Wealth_Profile_45[age,:,i] = NaN ; 
+            S_Wealth_Profile_45[age,:,i] .= NaN ; 
         end 
         
         end 
