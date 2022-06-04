@@ -178,6 +178,46 @@ end
 
     end 
 
+    open(Hist_Folder*"/H_G_timed.csv", "w") do io
+    writedlm(io, H_Γ_timed , ',')
+    end;
+
+    open(Hist_Folder*"/H_G_bytes.csv", "w") do io
+    writedlm(io, H_Γ_bytes , ',')
+    end;
+
+    open(Hist_Folder*"/H_M_timed.csv", "w") do io
+    writedlm(io, H_M_timed , ',')
+    end;
+
+    open(Hist_Folder*"/H_M_bytes.csv", "w") do io
+    writedlm(io, H_M_bytes , ',')
+    end;
+
+    open(Hist_Folder*"/H_Wealth_Stats.csv", "w") do io
+    writedlm(io, H_Wealth_Stats , ',')
+    end;
+
+    open(Hist_Folder*"/H_Wealth_Share.csv", "w") do io
+    writedlm(io, H_Wealth_Share , ',')
+    end;
+    
+    open(Hist_Folder*"/H_Pareto_Coeff.csv", "w") do io
+    writedlm(io, H_Pareto_Coeff , ',')
+    end;
+
+    open(Hist_Folder*"/H_Decile.csv", "w") do io
+    writedlm(io, H_Decile , ',')
+    end;
+
+    open(Hist_Folder*"/H_Decile_Tr.csv", "w") do io
+    writedlm(io, H_Decile_Tr , ',')
+    end;
+ 
+    open(Hist_Folder*"/H_Cons_Corr.csv", "w") do io
+    writedlm(io, H_Cons_Corr, ',')
+    end;
+                   
 
 
 ###################################################################
@@ -283,7 +323,38 @@ end
 
 
 
+    open(MC_Folder*"/S_M_timed.csv", "w") do io
+    writedlm(io, S_M_timed , ',')
+    end;
 
+    open(MC_Folder*"/S_M_bytes.csv", "w") do io
+    writedlm(io, S_M_bytes , ',')
+    end;
+
+    open(MC_Folder*"/S_Wealth_Stats.csv", "w") do io
+    writedlm(io, S_Wealth_Stats , ',')
+    end;
+
+    open(MC_Folder*"/S_Wealth_Share.csv", "w") do io
+    writedlm(io, S_Wealth_Share , ',')
+    end;
+    
+    open(MC_Folder*"/S_Pareto_Coeff.csv", "w") do io
+    writedlm(io, S_Pareto_Coeff , ',')
+    end;
+
+    open(MC_Folder*"/S_Decile.csv", "w") do io
+    writedlm(io, S_Decile , ',')
+    end;
+
+    open(MC_Folder*"/S_Decile_Tr.csv", "w") do io
+    writedlm(io, S_Decile_Tr , ',')
+    end;
+    
+    open(MC_Folder*"/S_Cons_Corr.csv", "w") do io
+    writedlm(io, S_Cons_Corr, ',')
+    end;
+                    
 
 
 ###################################################################

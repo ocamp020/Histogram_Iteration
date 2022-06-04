@@ -31,6 +31,8 @@
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
     File_Folder = "Files"   ; mkpath(File_Folder) ;
+    Hist_Folder = "Files/Histogram"  ; mkpath(Hist_Folder) ;
+    MC_Folder   = "Files/MonteCarlo" ; mkpath(MC_Folder)   ;
 
 # Load packages
 using SparseArrays

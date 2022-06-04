@@ -137,6 +137,36 @@ end
     end 
 
 
+    open(Hist_Folder*"/H_G_timed.csv", "w") do io
+    writedlm(io, H_Γ_timed , ',')
+    end;
+
+    open(Hist_Folder*"/H_G_bytes.csv", "w") do io
+    writedlm(io, H_Γ_bytes , ',')
+    end;
+
+    open(Hist_Folder*"/H_M_timed.csv", "w") do io
+    writedlm(io, H_M_timed , ',')
+    end;
+
+    open(Hist_Folder*"/H_M_bytes.csv", "w") do io
+    writedlm(io, H_M_bytes , ',')
+    end;
+
+    open(Hist_Folder*"/H_Wealth_Profile_NB.csv", "w") do io
+    writedlm(io, H_Wealth_Profile_NB , ',')
+    end;
+
+    open(Hist_Folder*"/H_Wealth_Profile_45.csv", "w") do io
+    writedlm(io, H_Wealth_Profile_45 , ',')
+    end;
+    
+    open(Hist_Folder*"/H_Wealth_Corr.csv", "w") do io
+    writedlm(io, H_Wealth_Corr , ',')
+    end;
+
+                    
+    
 
 ###################################################################
 ###################################################################
@@ -250,7 +280,27 @@ end
     end 
     
 
+    open(MC_Folder*"/S_M_timed.csv", "w") do io
+    writedlm(io, S_M_timed , ',')
+    end;
 
+    open(MC_Folder*"/S_M_bytes.csv", "w") do io
+    writedlm(io, S_M_bytes , ',')
+    end;
+
+    open(MC_Folder*"/S_Wealth_Profile_NB.csv", "w") do io
+    writedlm(io, S_Wealth_Profile_NB , ',')
+    end;
+
+    open(MC_Folder*"/S_Wealth_Profile_45.csv", "w") do io
+    writedlm(io, S_Wealth_Profile_45 , ',')
+    end;
+    
+    open(MC_Folder*"/S_Wealth_Corr.csv", "w") do io
+    writedlm(io, S_Wealth_Corr , ',')
+    end;
+
+                        
 
 
 

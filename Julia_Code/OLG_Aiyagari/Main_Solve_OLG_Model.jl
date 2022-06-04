@@ -12,21 +12,24 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-   cd()
-   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+#    cd()
+#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Baxter's Computer
-    # cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+     cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Compute Canada Server
-    cd("/scratch/robin370/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+    # cd("/scratch/robin370/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 
 ## Make auxiliary directores
     Fig_Folder  = "Figures" ; mkpath(Fig_Folder)  ;
     File_Folder = "Files"   ; mkpath(File_Folder) ;
+    Hist_Folder = "Files/Histogram"  ; mkpath(Hist_Folder) ;
+    MC_Folder   = "Files/MonteCarlo" ; mkpath(MC_Folder)   ;
+
 
 # Load packages
 using SparseArrays
@@ -134,7 +137,11 @@ p = Par();
         G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
         # Distribution
-        Γ         = 1/(n_ϵ*n_a_fine*p.Max_Age)*ones(n_a_fine,n_ϵ,p.Max_Age) # Distribution (initiliazed to uniform)
+        for i_h=1;p.Max_Age
+        for i_ϵ=1:n_ϵ
+        Γ[:,i_ϵ,i_h] .= 1/(n_a_fine)*MP_ϵ.PDF[i_ϵ]*p.Age_PDF[i_h] # Distribution (initiliazed to uniform)
+        end
+        end
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)              # Index for discretization of savings choice 
         # H_ω       = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)                    # Probability of transition lo low index in discretization
         H_ω_lo_s   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age,n_ϵ)
