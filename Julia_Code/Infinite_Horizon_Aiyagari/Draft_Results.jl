@@ -361,8 +361,37 @@ end
 ###################################################################
 ## Graphs and Tables 
     
+###################################################################
+## Load results from csv files 
+    H_grid_size = 100:50:1000 ; 
+    n_H = length(H_grid_size) ;
+    pct_list = [90;95;99;99.9;99.99] ;
+    S_sample = 1000:1000:M_Panel.N_Panel ; 
+    N_S      = length(S_sample)          ;
 
+    H_Γ_timed =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;
+    H_Γ_bytes =          readdlm(Hist_Folder*"/H_G_bytes.csv", ',', Float64) ;
+    H_M_timed = reshape( readdlm(Hist_Folder*"/H_M_timed.csv", ',', Float64) , n_H , 3 ) ;
+    H_M_bytes = reshape( readdlm(Hist_Folder*"/H_M_bytes.csv", ',', Float64) , n_H , 3 ) ;
+    
+    H_Wealth_Stats  = reshape( readdlm(Hist_Folder*"/H_Wealth_Stats.csv", ',', Float64) , n_H , 6 ) ;
+    H_Wealth_Share  = reshape( readdlm(Hist_Folder*"/H_Wealth_Share.csv", ',', Float64) , n_H , 5 ) ;
+    H_Pareto_Coeff  =          readdlm(Hist_Folder*"/H_Pareto_Coeff.csv", ',', Float64) ;    
+    H_Decile        = reshape( readdlm(Hist_Folder*"/H_Decile.csv"   , ',', Float64) , 11 , 2  , n_H ) ;
+    H_Decile_Tr     = reshape( readdlm(Hist_Folder*"/H_Decile_Tr.csv", ',', Float64) , 10 , 10 , n_H ) ;
+    H_Cons_Corr     =          readdlm(Hist_Folder*"/H_Cons_Corr.csv", ',', Float64) ;
+    
+    S_M_timed = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 3 ) ;
+    S_M_bytes = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 3 ) ;
+    
+    S_Wealth_Stats  = reshape( readdlm(MC_Folder*"/S_Wealth_Stats.csv", ',', Float64) , N_S , 6 ) ;
+    S_Wealth_Share  = reshape( readdlm(MC_Folder*"/S_Wealth_Share.csv", ',', Float64) , N_S , 5 ) ;
+    S_Pareto_Coeff  =          readdlm(MC_Folder*"/S_Pareto_Coeff.csv", ',', Float64) ;    
+    S_Decile        = reshape( readdlm(MC_Folder*"/S_Decile.csv"   , ',', Float64) , 11 , N_S ) ;
+    S_Decile_Tr     = reshape( readdlm(MC_Folder*"/S_Decile_Tr.csv", ',', Float64) , 10 , 10 , N_S ) ;
+    S_Cons_Corr     =          readdlm(MC_Folder*"/S_Cons_Corr.csv", ',', Float64) ;
 
+    
 ###################################################################
 ## Top 1%, 0.1%, 0.01% Shares 
     # Top 1%

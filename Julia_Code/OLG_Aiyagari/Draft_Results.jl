@@ -310,6 +310,32 @@ end
 ## Graphs and Tables 
     
 
+
+###################################################################
+## Load results from csv files 
+    H_grid_size = 100:50:1000 ; 
+    n_H = length(H_grid_size) ;
+    pct_list = [90;95;99;99.9;99.99] ;
+    S_sample = 10000:1000:M_Panel.N_Panel ; 
+    N_S      = length(S_sample)          ;
+    
+    H_Γ_timed =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;
+    H_Γ_bytes =          readdlm(Hist_Folder*"/H_G_bytes.csv", ',', Float64) ;
+    H_M_timed = reshape( readdlm(Hist_Folder*"/H_M_timed.csv", ',', Float64) , n_H , 2 ) ;
+    H_M_bytes = reshape( readdlm(Hist_Folder*"/H_M_bytes.csv", ',', Float64) , n_H , 2 ) ;
+
+    H_Wealth_Profile_NB  = reshape( readdlm(Hist_Folder*"/H_Wealth_Profile_NB.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
+    H_Wealth_Profile_45  = reshape( readdlm(Hist_Folder*"/H_Wealth_Profile_45.csv", ',', Float64) , M_Aiyagari.p.Max_Age-age_0_Wealth_Profile+1 , 6 , N_S ) ;
+    H_Wealth_Corr        =          readdlm(Hist_Folder*"/H_Wealth_Corr.csv"      , ',', Float64) ;    
+    
+    S_M_timed = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 2 ) ;
+    S_M_bytes = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 2 ) ;
+
+    S_Wealth_Profile_NB  = reshape( readdlm(MC_Folder*"/S_Wealth_Profile_NB.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
+    S_Wealth_Profile_45  = reshape( readdlm(MC_Folder*"/S_Wealth_Profile_45.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
+    S_Wealth_Corr        =          readdlm(MC_Folder*"/S_Wealth_Corr.csv"      , ',', Float64) ;    
+ 
+    
 ###################################################################
 ## Wealth Profiles
     # 10k Observations 
