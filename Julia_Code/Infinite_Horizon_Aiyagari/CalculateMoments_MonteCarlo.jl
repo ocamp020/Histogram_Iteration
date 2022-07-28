@@ -8,7 +8,7 @@
 ###################################################################
 ## Run Simulations
     M_P = Model_Panel() ; 
-    M_P = Simulate_Panel(M_Aiyagari,M_P) ;
+    M_P = Simulate_Panel(M_Aiyagari,M_P,Seed_Flag=true) ;
 
     fig_sample = [1000 ; collect(5000:5000:M_P.N_Panel)] ; 
     fig_N      = length(fig_sample)         ; 
@@ -27,6 +27,7 @@
         writedlm(io, M_P.ζ_mat , ',')
     end;
     
+   # a_mat = readdlm(File_Folder*"/S_a_mat.csv", ',', Float64) ;
 
 ###################################################################
 ###################################################################
@@ -39,8 +40,26 @@
         a_sample       = M_P.a_mat[1:fig_sample[i],end] ;
         av_a_S[i]   = mean( a_sample )                  ;
         pct_S[:,i]  = percentile( a_sample , pct_list ) ;
-        Top_Shares_S[:,i] = [ 100*sum( a_sample[ a_sample.>=pct_S[p] ]  )/(fig_sample[i]*av_a_S[i])  for p in 1:5] ;
+        Top_Shares_S[:,i] = [ 100*sum( a_sample[ a_sample.>=pct_S[p,i] ]  )/(fig_sample[i]*av_a_S[i])  for p in 1:5] ;
     end 
+
+
+    println(" ")
+    println(" Comparing Top Shares and Percentiles")
+    println(" ")
+
+    println("    Top X%  Share_Hist  Share_Simul ")
+    for i=1:5
+    println("    $(round(100-Top_shares[i,1],digits=2))%  $(round(Top_shares[i,3],digits=2))% $(round(Top_Shares_S[i,end],digits=2))% ")
+    end
+    
+    println(" ")
+    println(" ")
+    
+    println("    Top X%  Level_Hist  Level_Simul ")
+    for i=1:5
+    println("    $(round(100-Top_shares[i,1],digits=2))%  \$$(round(Top_shares[i,2],digits=3))k  \$$(round(pct_S[i,end],digits=3))k ")
+    end
 
 ## Figures: Top percentiles 1% and 0.1%     
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
@@ -72,7 +91,7 @@
 ###################################################################
 ## Lorenz Curve 
     Lorenz_S = zeros(100,4) ; 
-    sample_vec = [10000, 50000, 100000, 500000] ; 
+    sample_vec = [50000, 100000, 250000, 500000] ; 
     for i=1:4
         a_sample       = M_P.a_mat[1:sample_vec[i],end]   ; av_a_aux = sum(a_sample) ;
         p_aux       = percentile( a_sample , 1:100 )    ;

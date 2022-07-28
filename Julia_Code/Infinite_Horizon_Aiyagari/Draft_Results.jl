@@ -1,11 +1,11 @@
 ###################################################################
 ###################################################################
 ###################################################################
-## Graphs and Tables for Draft 
+## Simulate to get restuls for draft's graphs and tables
 
 
 
-
+# =
 ###################################################################
 ###################################################################
 ## Histogram 
@@ -73,9 +73,9 @@ function H_Moments_Decile_Transitions(M::Model,N::Int)
             Γ_0[deciles_a[i]+1:deciles_a[i+1],:,:] = M.Γ[deciles_a[i]+1:deciles_a[i+1],:,:] ; 
             Γ_0 = Γ_0/sum(Γ_0) ; 
             # Iterate distribution 
-            Γ_N = Histogram_Iteration(M,n_H,Γ_0) ;
+            Γ_N = Histogram_Iteration(M,N,Γ_0) ;
             # Obtain transitions (sum over new distribution within deciles)
-            Tr_deciles_a[i,:] = [sum( Γ_N[deciles_a[j]+1:deciles_a[j+1],:,:] ) for j in 1:10] ;
+            Tr_deciles_a[i,:] = [100*sum( Γ_N[deciles_a[j]+1:deciles_a[j+1],:,:] ) for j in 1:10] ;
         end 
 
     # Return Moments 
@@ -89,22 +89,43 @@ end
 function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
 
     # Get average consumption and standard deviation 
-        # First quintile distribution 
+        # Initial distribution over asset range
         Γ_q                     = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ)   ; 
         Γ_q[a_min:a_max,:,:]    = M.Γ[a_min:a_max,:,:]            ; 
-        Γ_q                     = Γ_q/sum(Γ_q) ; 
-        # First quintile consumption 
+        Γ_q                     = Γ_q/sum(Γ_q)                    ; 
+        # Consumption 
         av_c_q = sum( M.G_c_fine[a_min:a_max,:,:].*Γ_q[a_min:a_max,:,:] ) ;
         sd_c_q = sqrt( sum( ((M.G_c_fine[a_min:a_max,:,:].-av_c_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
-        # Future average and standard deviation conditional on first quintile
-            # Iterate distribution 
-            Γ_qN = Histogram_Iteration(M,N,Γ_q) ;
-            # Obtain consumption
-            av_c_q_N = sum( M.G_c_fine.*Γ_qN  )                                   ;
-            sd_c_q_N = sqrt( sum( ((M.G_c_fine.-av_c_q_N).^2).*Γ_qN  ) ) ; 
+        # Assets 
+        av_a_q = sum( M.a_mat_fine[a_min:a_max,:,:].*Γ_q[a_min:a_max,:,:] ) ;
+        sd_a_q = sqrt( sum( ((M.a_mat_fine[a_min:a_max,:,:].-av_a_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
+        # ϵ
+        av_ϵ_q = sum( log.(M.ϵ_mat_fine[a_min:a_max,:,:]).*Γ_q[a_min:a_max,:,:] ) ;
+        sd_ϵ_q = sqrt( sum( ((log.(M.ϵ_mat_fine[a_min:a_max,:,:]).-av_ϵ_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
+        # ζ
+        av_ζ_q = sum( log.(M.ζ_mat_fine[a_min:a_max,:,:]).*Γ_q[a_min:a_max,:,:] ) ;
+        sd_ζ_q = sqrt( sum( ((log.(M.ζ_mat_fine[a_min:a_max,:,:]).-av_ζ_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
+    # Future average and standard deviation conditional on first quintile
+        # Iterate distribution 
+        Γ_qN = Histogram_Iteration(M,N,Γ_q) ;
+        # Consumption
+        av_c_q_N = sum( M.G_c_fine.*Γ_qN  )                            ;
+        sd_c_q_N = sqrt( sum( ((M.G_c_fine.-av_c_q_N).^2).*Γ_qN  ) )   ; 
+        # Assets 
+        av_a_q_N = sum( M.a_mat_fine.*Γ_qN  )                          ;
+        sd_a_q_N = sqrt( sum( ((M.a_mat_fine.-av_a_q_N).^2).*Γ_qN  ) ) ; 
+        # ϵ 
+        av_ϵ_q_N = sum( log.(M.ϵ_mat_fine).*Γ_qN  )                          ;
+        sd_ϵ_q_N = sqrt( sum( ((log.(M.ϵ_mat_fine).-av_ϵ_q_N).^2).*Γ_qN  ) ) ; 
+        # ζ 
+        av_ζ_q_N = sum( log.(M.ζ_mat_fine).*Γ_qN  )                          ;
+        sd_ζ_q_N = sqrt( sum( ((log.(M.ζ_mat_fine).-av_ζ_q_N).^2).*Γ_qN  ) ) ; 
 
-    # Compute integrand of correlation for first and tenth deciles  
+    # Compute integrand of correlation 
         cov_c = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ) ; 
+        cov_a = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ) ; 
+        cov_ϵ = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ) ; 
+        cov_ζ = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ) ; 
         for i_ζ=1:M.n_ζ # Current ζ
         for i_ϵ=1:M.n_ϵ # Current ϵ
             for i_a=a_min:a_max # Current a
@@ -114,40 +135,57 @@ function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
                 # Iterate distribution
                 Γ_N = Histogram_Iteration(M,N,Γ_0) ;
                 # Get portion of integrand (C_0 - av_c)*(C_n - av_c)*Γ_n
-                cov_c[i_a,i_ϵ,i_ζ] = sum( ( M.G_c_fine[i_a,i_ϵ,i_ζ].-av_c_q )*( M.G_c_fine.-av_c_q_N ).*Γ_N ) ;
+                cov_c[i_a,i_ϵ,i_ζ] = sum( (      M.G_c_fine[i_a,i_ϵ,i_ζ]   .-av_c_q )*(      M.G_c_fine   .-av_c_q_N ).*Γ_N ) ;
+                cov_a[i_a,i_ϵ,i_ζ] = sum( (      M.a_mat_fine[i_a,i_ϵ,i_ζ] .-av_a_q )*(      M.a_mat_fine .-av_a_q_N ).*Γ_N ) ;
+                cov_ϵ[i_a,i_ϵ,i_ζ] = sum( ( log.(M.ϵ_mat_fine[i_a,i_ϵ,i_ζ]).-av_ϵ_q )*( log.(M.ϵ_mat_fine).-av_ϵ_q_N ).*Γ_N ) ;
+                cov_ζ[i_a,i_ϵ,i_ζ] = sum( ( log.(M.ζ_mat_fine[i_a,i_ϵ,i_ζ]).-av_ζ_q )*( log.(M.ζ_mat_fine).-av_ζ_q_N ).*Γ_N ) ;
             end 
-
         end 
         end 
 
-    # Integrate with respect to initial distribution of first quintile
-        cov_c_q  = sum( cov_c.*Γ_q )  ;
-        cor_c_q  = cov_c_q/sqrt(sd_c_q^2*sd_c_q_N^2) ; 
+    # Integrate with respect to initial distribution
+        cov_c_q  = sum( cov_c.*Γ_q )  ;     cor_c_q  = cov_c_q/(sd_c_q*sd_c_q_N) ; 
+        cov_a_q  = sum( cov_a.*Γ_q )  ;     cor_a_q  = cov_a_q/(sd_a_q*sd_a_q_N) ; 
+        cov_ϵ_q  = sum( cov_ϵ.*Γ_q )  ;     cor_ϵ_q  = cov_ϵ_q/(sd_ϵ_q*sd_ϵ_q_N) ; 
+        cov_ζ_q  = sum( cov_ζ.*Γ_q )  ;     cor_ζ_q  = cov_ζ_q/(sd_a_q*sd_ζ_q_N) ; 
+
+    # Print other moments 
+        println("Moments for autocorrelation of consumption:")
+        println("cor_c=$(corr_c_q) - av_c_0=$av_c_q - av_c_T=$av_c_q_N - sd_c_0=$sd_c_q - sd_c_T=$sd_c_q_N - cov_0N=$cov_c_q")        
+        println("cor_a=$(corr_a_q) - av_a_0=$av_a_q - av_a_T=$av_a_q_N - sd_a_0=$sd_a_q - sd_a_T=$sd_a_q_N - cov_0N=$cov_a_q")        
+        println("cor_ϵ=$(corr_ϵ_q) - av_ϵ_0=$av_ϵ_q - av_ϵ_T=$av_ϵ_q_N - sd_ϵ_0=$sd_ϵ_q - sd_ϵ_T=$sd_ϵ_q_N - cov_0N=$cov_ϵ_q")        
+        println("cor_ζ=$(corr_ζ_q) - av_ζ_0=$av_ζ_q - av_ζ_T=$av_ζ_q_N - sd_ζ_0=$sd_ζ_q - sd_ζ_T=$sd_ζ_q_N - cov_0N=$cov_ζ_q")        
 
     # Return Moment 
-        return cor_c_q 
+        return cor_c_q, cor_a_q, cor_ϵ_q, cor_ζ_q 
 end 
 
 
 ###################################################################
 ## Run Histogram Simulation for Different Grids 
-    H_grid_size = 100:50:1000 ; 
+    H_grid_size = [250 500 750 1000] ; 
     n_H = length(H_grid_size) ;
     H_Γ_timed = zeros(n_H)    ; 
     H_Γ_bytes = zeros(n_H)    ;
     H_M_timed = zeros(n_H,3)  ; 
     H_M_bytes = zeros(n_H,3)  ;
 
-    H_Wealth_Stats = zeros(n_H,6) ; 
-    H_Wealth_Share = zeros(n_H,5) ; 
-    H_Pareto_Coeff = zeros(n_H  ) ; 
-    pct_list = [90;95;99;99.9;99.99] ; 
+    H_a_grid  = zeros(H_grid_size[end],n_H) ; # Asset Grid
+    H_Γ_a     = zeros(H_grid_size[end],n_H) ; # Distribution of assets
+
+    H_Wealth_Stats = zeros(n_H,6) ; # 5 Percentiles (levels) + Average Assets
+    H_Wealth_Share = zeros(n_H,5) ; # 5 Top Shares by percentiles
+    H_Pareto_Coeff = zeros(n_H  ) ; # Pareto Coefficient
+    pct_list = [90;95;99;99.9;99.99] ; # Percentiles to be computed
 
     H_Decile       = zeros(11,2 ,n_H) ;
     H_Decile_Tr    = zeros(10,10,n_H) ;
     N_Decile_Tr    = 9                ;
 
     H_Cons_Corr    = zeros(n_H)       ;
+    H_A_Corr       = zeros(n_H)       ;
+    H_ϵ_Corr       = zeros(n_H)       ;
+    H_ζ_Corr       = zeros(n_H)       ;
     N_Cons_Corr    = 2                ;
 
     for i=1:n_H 
@@ -159,12 +197,16 @@ end
         # Solve for stationary distribution and save time and allocation - Adjust grid size
         M_Hist, H_Γ_timed[i], H_Γ_bytes[i] = @timed Aiyagari_Equilibrium(M_Hist);
         
+        ## Grid and Distribution
+        H_a_grid[1:H_grid_size[i],i] = M_Hist.a_grid_fine ;
+        H_Γ_a[1:H_grid_size[i],i]    = dropdims( sum( M_Hist.Γ , dims=(3,2) ) , dims=(3,2) ) ;
        
         ## Moments 
         
         # 1-2) Top Wealth Shares and Pareto Coefficient 
         out, time, memory = @timed H_Moments_Top_Shares(M_Hist,pct_list) ;
-        H_Wealth_Stats[i,:] = out[1] ; H_Wealth_Share[i,:] = out[2] ; H_Pareto_Coeff[i] = out[3] ; H_M_timed[i,1] = time ; H_M_bytes[i,1] = memory ; 
+        H_Wealth_Stats[i,:] = out[1] ; H_Wealth_Share[i,:] = out[2] ; H_Pareto_Coeff[i] = out[3] ; 
+        H_M_timed[i,1] = time ; H_M_bytes[i,1] = memory ; 
 
 
         # 3) Decile Transitions 
@@ -174,7 +216,8 @@ end
         
         # 4) Consumption Autocorrelation for first quintile
         out, time, memory = @timed H_Moments_C_Correlation(M_Hist,N_Cons_Corr,1,Int(H_Decile[3,1,i])) ;
-        H_Cons_Corr[i] = out ;  H_M_timed[i,3] = time ; H_M_bytes[i,3] = memory ;
+        H_Cons_Corr[i] = out[1] ; H_A_Corr[i] = out[2] ; H_ϵ_Corr[i] = out[3] ; H_ζ_Corr[i] = out[4] ;  
+        H_M_timed[i,3] = time ; H_M_bytes[i,3] = memory ;
 
     end 
 
@@ -184,6 +227,14 @@ end
 
     open(Hist_Folder*"/H_G_bytes.csv", "w") do io
     writedlm(io, H_Γ_bytes , ',')
+    end;
+
+    open(Hist_Folder*"/H_a_grid.csv", "w") do io
+    writedlm(io, H_a_grid , ',')
+    end;
+
+    open(Hist_Folder*"/H_G_a.csv", "w") do io
+    writedlm(io, H_Γ_a , ',')
     end;
 
     open(Hist_Folder*"/H_M_timed.csv", "w") do io
@@ -217,8 +268,21 @@ end
     open(Hist_Folder*"/H_Cons_Corr.csv", "w") do io
     writedlm(io, H_Cons_Corr, ',')
     end;
-                   
 
+    open(MC_Folder*"/H_A_Corr.csv", "w") do io
+    writedlm(io, H_A_Corr, ',')
+    end;
+
+    open(MC_Folder*"/H_eps_Corr.csv", "w") do io
+    writedlm(io, H_ϵ_Corr, ',')
+    end;
+
+    open(MC_Folder*"/H_z_Corr.csv", "w") do io
+    writedlm(io, H_ζ_Corr, ',')
+    end;
+    
+                   
+# =#
 
 ###################################################################
 ###################################################################
@@ -232,40 +296,50 @@ end
 
     # Set up model structures 
     M_Simul = Model(method=1,read_flag=true) ;
-    M_Panel = Model_Panel(N_Panel=1000000)   ; 
+    # M_Panel = Model_Panel(N_Panel=1000000)   ; 
 
     # Set up discrete observations 
-    S_sample = 1000:1000:M_Panel.N_Panel ; 
+    S_sample = 250000:250000:1000000 ; 
     N_S      = length(S_sample)          ;
     pct_list = [90;95;99;99.9;99.99]     ;  
 
-    S_M_timed      = zeros(N_S,3)     ; 
-    S_M_bytes      = zeros(N_S,3)     ;
+    S_M_timed      = zeros(N_S,4)     ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
+    S_M_bytes      = zeros(N_S,4)     ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
     
-    S_Wealth_Stats = zeros(N_S,6)     ; 
-    S_Wealth_Share = zeros(N_S,5)     ; 
-    S_Pareto_Coeff = zeros(N_S  )     ;  
+    S_Wealth_Sample= zeros(N_S,1000000) ;
+    S_Wealth_Stats = zeros(N_S,6)       ; 
+    S_Wealth_Share = zeros(N_S,5)       ; 
+    S_Pareto_Coeff = zeros(N_S  )       ;  
 
     S_Decile       = zeros(11,N_S)    ;
     S_Decile_Tr    = zeros(10,10,N_S) ;
 
     S_Cons_Corr    = zeros(N_S)       ;
+    S_A_Corr       = zeros(N_S)       ;
+    S_ϵ_Corr       = zeros(N_S)       ;
+    S_ζ_Corr       = zeros(N_S)       ;
     
     # Solve model 
     M_Simul, S_Γ_timed, S_Γ_bytes = @timed Aiyagari_Equilibrium(M_Simul);
 
-    # Simulate Panel 
-    M_Panel = Simulate_Panel_Dynasty(M_Simul,M_Panel) ; 
+    # # Simulate Panel 
+    # M_Panel = Simulate_Panel_Dynasty(M_Simul,M_Panel) ; 
 
     
     ## Moments 
 
+    for i=1:N_S
+
+    # Simulate Panel      
+        M_Panel = Model_Panel(N_Panel=S_sample[i])   ;   
+        M_Panel, S_M_timed[i,1], S_M_bytes[i,1] = @timed Simulate_Panel(M_Simul,M_Panel,Seed_Flag=true) ; 
+
     # 1-2) Top Wealth Shares and Pareto Coefficient 
-    for i=1:N_S 
-        a, S_M_timed[i,1], S_M_bytes[i,1] = @timed begin 
+        a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
 
         # Select sample 
-        a_sample  = M_Panel.a_mat[1:S_sample[i],end] ;
+        a_sample  = M_Panel.a_mat[:,end] ;# M_Panel.a_mat[1:S_sample[i],end] ;
+        S_Wealth_Sample[i,:] = a_sample  ;
 
         # Average wealth 
         S_Wealth_Stats[i,end]     = mean( a_sample )   ;
@@ -283,15 +357,13 @@ end
 
         # Time it 
         end
-    end 
 
 
     # 3) Decile Transitions 
-    for i=1:N_S 
-        a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
+        a, S_M_timed[i,3], S_M_bytes[i,3] = @timed begin 
 
-        a_aux_0       = M_Panel.a_mat[1:S_sample[i],1]   ;
-        a_aux_T       = M_Panel.a_mat[1:S_sample[i],end] ;
+        a_aux_0       = M_Panel.a_mat[:,1]   ;
+        a_aux_T       = M_Panel.a_mat[:,end] ;
         S_Decile[:,i] = percentile( a_aux_T , 0:10:100 ) ; # Deciles based on end of sample (hoping for stationariety)
         for p=1:10
             ind_d = findall(x-> S_Decile[p,i]<=x<=S_Decile[p+1,i], a_aux_0 ) ; # Find "i" in each decile in t=1
@@ -301,27 +373,31 @@ end
 
         # Time it 
         end
-    end 
     
     
     # 4) Consumption Autocorrelation for first quintile
-    for i=1:N_S 
-        a, S_M_timed[i,3], S_M_bytes[i,3] = @timed begin 
+        a, S_M_timed[i,4], S_M_bytes[i,4] = @timed begin 
 
-        # Fix current sample 
-        a_aux_0       = M_Panel.a_mat[1:S_sample[i],8]   ;
-        c_aux_0       = M_Panel.c_mat[1:S_sample[i],8]   ;
-        c_aux_T       = M_Panel.c_mat[1:S_sample[i],end] ;
+        # Fix current sample and future sample 
+        a_aux_0 = M_Panel.a_mat[:,8]   ; c_aux_0 = M_Panel.c_mat[:,8]   ; ϵ_aux_0 = M_Panel.ϵ_mat[:,8]   ; ζ_aux_0 = M_Panel.ζ_mat[:,8]   ;
+        a_aux_T = M_Panel.a_mat[:,end] ; c_aux_T = M_Panel.c_mat[:,end] ; ϵ_aux_T = M_Panel.ϵ_mat[:,end] ; ζ_aux_T = M_Panel.ζ_mat[:,end] ;
         # Find index of first quintile 
         ind_q         = findall(x-> 0<=x<=S_Decile[3,i], a_aux_0 ) ; # Index of first quintile of assets in T-1
         # Compute moments 
-        S_Cons_Corr[i]= cor( [c_aux_0[ind_q] c_aux_T[ind_q]]  ;dims=1)[2]              ;  
-
+        S_Cons_Corr[i]= cor( [     c_aux_0[ind_q]       c_aux_T[ind_q] ]  ;dims=1)[2]  ;
+        S_A_Corr[i]   = cor( [     a_aux_0[ind_q]       a_aux_T[ind_q] ]  ;dims=1)[2]  ;
+        S_ϵ_Corr[i]   = cor( [log.(ϵ_aux_0[ind_q]) log.(ϵ_aux_T[ind_q])]  ;dims=1)[2]  ;
+        S_ζ_Corr[i]   = cor( [log.(ζ_aux_0[ind_q]) log.(ζ_aux_T[ind_q])]  ;dims=1)[2]  ; 
+            # Deconstruct measure: mean, var, cov 
+            av_c_0   = mean(c_aux_0[ind_q]) ;
+            av_c_T   = mean(c_aux_T[ind_q]) ;
+            cov_c_0T = cov([c_aux_0[ind_q] c_aux_T[ind_q]]) ;  
+            println("Moments for autocorrelation of consumption:")
+            println("av_c_0=$av_c_0 - av_c_T=$av_c_T - sd_c_0=$(sqrt(cov_c_0T[1,1])) - sd_c_T=$(sqrt(cov_c_0T[2,2])) - cov_0N=$(cov_c_0T[1,2])") 
         # Time it 
         end  
-    end 
 
-
+    end
 
     open(MC_Folder*"/S_M_timed.csv", "w") do io
     writedlm(io, S_M_timed , ',')
@@ -329,6 +405,10 @@ end
 
     open(MC_Folder*"/S_M_bytes.csv", "w") do io
     writedlm(io, S_M_bytes , ',')
+    end;
+
+    open(MC_Folder*"/S_Wealth_Sample.csv", "w") do io
+    writedlm(io, S_Wealth_Sample , ',')
     end;
 
     open(MC_Folder*"/S_Wealth_Stats.csv", "w") do io
@@ -354,208 +434,15 @@ end
     open(MC_Folder*"/S_Cons_Corr.csv", "w") do io
     writedlm(io, S_Cons_Corr, ',')
     end;
-                    
+        
+    open(MC_Folder*"/S_A_Corr.csv", "w") do io
+    writedlm(io, S_A_Corr, ',')
+    end;
 
+    open(MC_Folder*"/S_eps_Corr.csv", "w") do io
+    writedlm(io, S_ϵ_Corr, ',')
+    end;
 
-###################################################################
-###################################################################
-## Graphs and Tables 
-    
-###################################################################
-## Load results from csv files 
-    H_grid_size = 100:50:1000 ; 
-    n_H = length(H_grid_size) ;
-    pct_list = [90;95;99;99.9;99.99] ;
-    S_sample = 1000:1000:M_Panel.N_Panel ; 
-    N_S      = length(S_sample)          ;
-
-    H_Γ_timed =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;
-    H_Γ_bytes =          readdlm(Hist_Folder*"/H_G_bytes.csv", ',', Float64) ;
-    H_M_timed = reshape( readdlm(Hist_Folder*"/H_M_timed.csv", ',', Float64) , n_H , 3 ) ;
-    H_M_bytes = reshape( readdlm(Hist_Folder*"/H_M_bytes.csv", ',', Float64) , n_H , 3 ) ;
-    
-    H_Wealth_Stats  = reshape( readdlm(Hist_Folder*"/H_Wealth_Stats.csv", ',', Float64) , n_H , 6 ) ;
-    H_Wealth_Share  = reshape( readdlm(Hist_Folder*"/H_Wealth_Share.csv", ',', Float64) , n_H , 5 ) ;
-    H_Pareto_Coeff  =          readdlm(Hist_Folder*"/H_Pareto_Coeff.csv", ',', Float64) ;    
-    H_Decile        = reshape( readdlm(Hist_Folder*"/H_Decile.csv"   , ',', Float64) , 11 , 2  , n_H ) ;
-    H_Decile_Tr     = reshape( readdlm(Hist_Folder*"/H_Decile_Tr.csv", ',', Float64) , 10 , 10 , n_H ) ;
-    H_Cons_Corr     =          readdlm(Hist_Folder*"/H_Cons_Corr.csv", ',', Float64) ;
-    
-    S_M_timed = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 3 ) ;
-    S_M_bytes = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 3 ) ;
-    
-    S_Wealth_Stats  = reshape( readdlm(MC_Folder*"/S_Wealth_Stats.csv", ',', Float64) , N_S , 6 ) ;
-    S_Wealth_Share  = reshape( readdlm(MC_Folder*"/S_Wealth_Share.csv", ',', Float64) , N_S , 5 ) ;
-    S_Pareto_Coeff  =          readdlm(MC_Folder*"/S_Pareto_Coeff.csv", ',', Float64) ;    
-    S_Decile        = reshape( readdlm(MC_Folder*"/S_Decile.csv"   , ',', Float64) , 11 , N_S ) ;
-    S_Decile_Tr     = reshape( readdlm(MC_Folder*"/S_Decile_Tr.csv", ',', Float64) , 10 , 10 , N_S ) ;
-    S_Cons_Corr     =          readdlm(MC_Folder*"/S_Cons_Corr.csv", ',', Float64) ;
-
-    
-###################################################################
-## Top 1%, 0.1%, 0.01% Shares 
-    # Top 1%
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot(  H_M_timed[:,1] , H_Wealth_Share[:,3] ,label="Top 1% - Histogram")
-    plot!( S_M_timed[:,1] , S_Wealth_Share[:,3] ,label="Top 1% - Simulation")
-    ylims!(0,1)
-    # xlims!(1,M_P.N_Panel/1000)
-    title!("Top 1% Share of Wealth",titlefont=14)
-    xlabel!("Time: Seconds",labelsize=18)
-    savefig("./"*Fig_Folder*"/Draft_Top_1_Share.pdf")
-
-    # Top 0.1%
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot(  H_M_timed[:,1] , H_Wealth_Share[:,4] ,label="Top 0.1% - Histogram")
-    plot!( S_M_timed[:,1] , S_Wealth_Share[:,4] ,label="Top 0.1% - Simulation")
-    ylims!(0,1)
-    # xlims!(1,M_P.N_Panel/1000)
-    title!("Top 0.1% Share of Wealth",titlefont=14)
-    xlabel!("Time: Seconds",labelsize=18)
-    savefig("./"*Fig_Folder*"/Draft_Top_01_Share.pdf")
-
-    # Top 0.01%
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot(  H_M_timed[:,1] , H_Wealth_Share[:,5] ,label="Top 0.01% - Histogram")
-    plot!( S_M_timed[:,1] , S_Wealth_Share[:,5] ,label="Top 0.01% - Simulation")
-    ylims!(0,1)
-    # xlims!(1,M_P.N_Panel/1000)
-    title!("Top 0.01% Share of Wealth",titlefont=14)
-    xlabel!("Time: Seconds",labelsize=18)
-    savefig("./"*Fig_Folder*"/Draft_Top_001_Share.pdf")
-
-
-###################################################################
-## Pareto Tail 
-    # Results from Histogram 
-    ind     = M_Simul.a_grid_fine.>=1000 ;
-    grid_1M = M_Simul.a_grid_fine[ind]   ;
-    Γ_a     = dropdims( sum( M_Simul.Γ , dims=(3,2) ) , dims=(3,2) ) ; # Assets 
-    Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])     ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
-    CCDF_1M = 1 .- cumsum(Γ_a_1M)        ;
-    P_coeff = (log.(grid_1M[1:end-1]./1000)'*log.(grid_1M[1:end-1]./1000))\log.(grid_1M[1:end-1]./1000)'*log.(CCDF_1M[1:end-1])
-
-    # 10k Simulation 
-    Pareto_a_10k = M_Panel.a_mat[1:10000,end]                  ; # Select first 10.000 observations 
-    Pareto_a_10k = sort( Pareto_a_10k[ Pareto_a_10k.>=1000 ] ) ; # Select and sort observations above $1M  
-    Pareto_p_10k = collect(length(Pareto_a_10k):-1:1)./length(Pareto_a_10k) ; # Counter CDF = 1- CDF
-    
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
-    scatter!( log.(Pareto_a_10k[1:end-1]./1000)  , log.(Pareto_p_10k[1:end-1])  , marker=(:circle ,3)    , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[10].*log.(grid_1M[1:end-1]./1000) , w=2 , label=nothing )
-    xlabel!("Log Assets",labelsize=18)
-    title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
-    savefig("./"*Fig_Folder*"/Draft_Pareto_10k.pdf")
-
-    # 50k Simulation 
-    Pareto_a_50k = M_Panel.a_mat[1:50000,end]                  ; # Select first 50.000 observations 
-    Pareto_a_50k = sort( Pareto_a_50k[ Pareto_a_50k.>=1000 ] ) ; # Select and sort observations above $1M  
-    Pareto_p_50k = collect(length(Pareto_a_50k):-1:1)./length(Pareto_a_50k) ; # Counter CDF = 1- CDF
-    
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
-    scatter!( log.(Pareto_a_50k[1:end-1]./1000)  , log.(Pareto_p_50k[1:end-1])  , marker=(:circle ,3)    , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[50].*log.(grid_1M[1:end-1]./1000) , w=2 , label=nothing )
-    xlabel!("Log Assets",labelsize=18)
-    title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
-    savefig("./"*Fig_Folder*"/Draft_Pareto_50k.pdf")
-
-
-    # 100k Simulation 
-    Pareto_a_100k = M_Panel.a_mat[1:100000,end]                  ; # Select first 100.000 observations 
-    Pareto_a_100k = sort( Pareto_a_100k[ Pareto_a_100k.>=1000 ] ) ; # Select and sort observations above $1M  
-    Pareto_p_100k = collect(length(Pareto_a_100k):-1:1)./length(Pareto_a_100k) ; # Counter CDF = 1- CDF
-    
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
-    scatter!( log.(Pareto_a_100k[1:end-1]./1000)  , log.(Pareto_p_100k[1:end-1])  , marker=(:circle ,3)    , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[100].*log.(grid_1M[1:end-1]./1000) , w=2 , label=nothing )
-    xlabel!("Log Assets",labelsize=18)
-    title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
-    savefig("./"*Fig_Folder*"/Draft_Pareto_100k.pdf")
-
-    # 500k Simulation 
-    Pareto_a_500k = M_Panel.a_mat[1:500000,end]                  ; # Select first 500.000 observations 
-    Pareto_a_500k = sort( Pareto_a_500k[ Pareto_a_500k.>=1000 ] ) ; # Select and sort observations above $1M  
-    Pareto_p_500k = collect(length(Pareto_a_500k):-1:1)./length(Pareto_a_500k) ; # Counter CDF = 1- CDF
-    
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
-    scatter!( log.(Pareto_a_500k[1:end-1]./1000)  , log.(Pareto_p_500k[1:end-1])  , marker=(:circle ,3)    , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[500].*log.(grid_1M[1:end-1]./1000) , w=2 , label=nothing )
-    xlabel!("Log Assets",labelsize=18)
-    title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
-    savefig("./"*Fig_Folder*"/Draft_Pareto_500k.pdf")
-
-
-    # 1M Simulation 
-    Pareto_a_1M = M_Panel.a_mat[1:1000000,end]                  ; # Select first 1.000.000 observations 
-    Pareto_a_1M = sort( Pareto_a_1M[ Pareto_a_1M.>=1000 ] ) ; # Select and sort observations above $1M  
-    Pareto_p_1M = collect(length(Pareto_a_1M):-1:1)./length(Pareto_a_1M) ; # Counter CDF = 1- CDF
-    
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
-    scatter!( log.(Pareto_a_1M[1:end-1]./1000)  , log.(Pareto_p_1M[1:end-1])  , marker=(:circle ,3)    , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[1000].*log.(grid_1M[1:end-1]./1000) , w=2 , label=nothing )
-    xlabel!("Log Assets",labelsize=18)
-    title!("Distribution Tail",titlefont=14)
-    ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
-    savefig("./"*Fig_Folder*"/Draft_Pareto_1M.pdf")
-
-
-###################################################################
-## Decile Transition
-    # Persistence first decile 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot(  H_M_timed[:,2] , 100*dropdims(H_Decile_Tr[1,1,:]) ,label="d1-d1 Transition - Histogram")
-    plot!( S_M_timed[:,2] , 100*dropdims(S_Decile_Tr[1,1,:]) ,label="d1-d1 Transition - Simulation")
-    ylims!(0,1)
-    # xlims!(1,M_P.N_Panel/1000)
-    # title!("Top 1% Share of Wealth",titlefont=14)
-    xlabel!("Time: Seconds",labelsize=18)
-    savefig("./"*Fig_Folder*"/Draft_Decile_Tr_1.pdf")
-
-    # Persistence tenth decile 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot(  H_M_timed[:,2] , 100*dropdims(H_Decile_Tr[10,10,:]) ,label="d10-d10 Transition - Histogram")
-    plot!( S_M_timed[:,2] , 100*dropdims(S_Decile_Tr[10,10,:]) ,label="d10-d10 Transition - Simulation")
-    ylims!(0,1)
-    # xlims!(1,M_P.N_Panel/1000)
-    # title!("Top 1% Share of Wealth",titlefont=14)
-    xlabel!("Time: Seconds",labelsize=18)
-    savefig("./"*Fig_Folder*"/Draft_Decile_Tr_10.pdf")
-
-
-###################################################################
-## Consumption 3 Year Auto-Correlation 
-    Mat = [ H_Cons_Corr[1]  H_Cons_Corr[4]  H_Cons_Corr[9]   S_Cons_Corr[10]                 S_Cons_Corr[100]                 S_Cons_Corr[500] ;
-            H_Γ_timed[1]    H_Γ_timed[4]    H_Γ_timed[9]     S_Γ_timed+M_Panel.t_vec[10000]  S_Γ_timed+M_Panel.t_vec[100000]  S_Γ_timed+M_Panel.t_vec[500000] ;
-            H_Timed[1,3]    H_Timed[4,3]    H_Timed[9,3]     S_M_timed[10,3]                 S_M_timed[100,3]                 S_M_timed[500,3]   ] ;
-
-
- 
+    open(MC_Folder*"/S_z_Corr.csv", "w") do io
+    writedlm(io, S_ζ_Corr, ',')
+    end;

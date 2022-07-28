@@ -203,14 +203,15 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
             ω_lo               = 1 
         else
             H_ind[i_a,i_ϵ,i_ζ] = Grid_Inv(G_ap_fine[i_a,i_ϵ,i_ζ],n_a_fine,θ_a_f,a_min,a_max)
-            ω_lo               = min(1,max(0,(G_ap_fine[i_a,i_ϵ,i_ζ]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])/(a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]+1]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])))
+            ω_lo               = 1-min(1,max(0,(G_ap_fine[i_a,i_ϵ,i_ζ]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])/(a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]+1]-a_grid_fine[H_ind[i_a,i_ϵ,i_ζ]])))
         end
 
         # Store weights for lower and upper bounds on approximation interval, including transition to future states 
         for i_ζp=1:n_ζ # Future ζ
         for i_ϵp=1:n_ϵ # Future ϵ
-            H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp] = (  ω_lo)*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp]
-            H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp] = (1-ω_lo)*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp]
+            # Update is the product of probabilities by independence of F(ϵ) and F(ζ)
+            H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp] = (  ω_lo)*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp] ;
+            H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp] = (1-ω_lo)*Pr_ϵp[i_ϵp]*Pr_ζp[i_ζp] ;
         end 
         end 
     end
@@ -232,12 +233,12 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         for i_ζ=1:n_ζ # Current ζ
         for i_ϵ=1:n_ϵ # Current ϵ
         for i_a=1:n_a_fine # Current a
-            i_ap = H_ind[i_a,i_ϵ,i_ζ]    ;
+            i_ap  = H_ind[i_a,i_ϵ,i_ζ]    ;
+            Γ_0_i =   Γ_0[i_a,i_ϵ,i_ζ]    ;
             for i_ζp=1:n_ζ # Future ζ
             for i_ϵp=1:n_ϵ # Future ϵ
-                # Update is the product of probabilities by independence of F(ϵ) and F(ζ)
-                Γ[i_ap,i_ϵp,i_ζp]   = Γ[i_ap  ,i_ϵp,i_ζp] + H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
-                Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0[i_a,i_ϵ,i_ζ]
+                Γ[i_ap  ,i_ϵp,i_ζp] = Γ[i_ap  ,i_ϵp,i_ζp] + H_ω_lo[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0_i ;
+                Γ[i_ap+1,i_ϵp,i_ζp] = Γ[i_ap+1,i_ϵp,i_ζp] + H_ω_hi[i_a,i_ϵ,i_ζ,i_ϵp,i_ζp]*Γ_0_i ;
             end
             end
         end
@@ -249,10 +250,10 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         Γ_0 .= (1-Hist_η)*Γ .+ Hist_η*Γ_0
         # Report progress
         if mod(i_H,10)==0
-            @printf("\n   Histogram Loop: iter = %d, dist = %.4e",i_H,H_dist)
+            @printf("\n   Histogram Loop: iter = %d, dist = %.4e, E[a] = %.4e",i_H,H_dist,sum(a_grid_fine.*dropdims( sum( Γ , dims=(3,2) ) , dims=(3,2) )))
         end
         # Check convergence
-        if H_dist<Hist_tol
+        if (H_dist<Hist_tol)
             @printf("\nHistogram iteration converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo=H_ω_lo, H_ω_hi=H_ω_hi)
             return M

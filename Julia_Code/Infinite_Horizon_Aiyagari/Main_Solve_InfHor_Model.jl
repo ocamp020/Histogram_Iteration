@@ -1,6 +1,6 @@
 # Computing Longitudinal Moments for Heterogeneous Agent Models
 # Sergio Ocampo, Baxter Robinson, and Emmanuel Murray Leclair
-# April 2022
+# July 2022
 # Aiyagari economy: 
 #       1. Infinitely lived agents
 #       2. Inelastic labor supply
@@ -15,15 +15,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-#    cd()
-#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+   cd()
+   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-    cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    # cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Compute Canada Server
 #    cd("/scratch/robin370/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
@@ -88,8 +88,8 @@ println(" ")
         dist_tol_Δ::Float64 = 1E-10 ; # Tolerance for change in distance 
         η                   = 0.10  ; # Dampen factor
         # Histogram iteration parameters
-        Hist_max_iter       = 1000  ; # Maximum number of iterations
-        Hist_tol            = 5E-6  ; # Tolerance for distance
+        Hist_max_iter       = 1500  ; # Maximum number of iterations
+        Hist_tol            = 1E-8  ; # Tolerance for distance
         Hist_η              = 0.1   ; # Dampen factor
         # Minimum consumption for numerical optimization
         c_min::Float64      = 1E-16
@@ -111,6 +111,7 @@ p = Par();
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
+        n_cut_fine      = Grid_Inv(25000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
         # Interest rate process
         n_ζ       = 7                                  # Size of ζ_grid
         MP_ζ      = Tauchen86(p.ρ_ζ,p.σ_ζ,n_ζ,1.96)      # Markov Process for ζ
@@ -136,7 +137,7 @@ p = Par();
         G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
         # Distribution
-        Γ         = 1/(n_ϵ*n_a_fine*n_ζ)*ones(n_a_fine,n_ϵ,n_ζ)     # Distribution (initiliazed to uniform)
+        Γ         = 1/(n_cut_fine*n_ϵ*n_ζ)*[ones(n_cut_fine,n_ϵ,n_ζ) ;; zeros(n_a_fine-n_cut_fine,n_ϵ,n_ζ)]     # Distribution (initiliazed to uniform)
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)            # Index for discretization of savings choice 
         H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
@@ -157,25 +158,29 @@ include("Functions_MonteCarlo.jl")
 # Execute model solution 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
     
-    @time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1,read_flag=true));
+    @time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1,read_flag=false));
 
 println("===============================================\n")
 
-
-# # Get stats and graphs for the solution of the model 
-# include("PrintStats_MakeGraphs.jl")
-
-
-# # Get moments from histogram method
-# include("CalculateMoments_Histogram.jl")
+ 
+# Get stats and graphs for the solution of the model 
+include("PrintStats_MakeGraphs.jl")
 
 
-# # Get moments from simulation
-# include("CalculateMoments_MonteCarlo.jl")
+# Get moments from histogram method
+include("CalculateMoments_Histogram.jl")
 
 
-# Run Draft Moments for Graphs and Tables 
-include("Draft_Results.jl")
+# Get moments from simulation
+include("CalculateMoments_MonteCarlo.jl")
+
+
+# # # Run Draft Moments for Graphs and Tables 
+# include("Draft_Results.jl")
+
+# # Make Draft Graphs and Tables
+# include("Draft_Graphs_Tables.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")
+
