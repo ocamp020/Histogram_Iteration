@@ -37,6 +37,8 @@
 # Load packages
 using SparseArrays
 using Plots
+using Colors
+using LaTeXStrings
 using Interpolations # Pkg.add("Interpolations") # https://github.com/JuliaMath/Interpolations.jl
 using Dierckx # Pkg.add("Dierckx") # https://github.com/kbarbary/Dierckx.jl
 using ForwardDiff # Pkg.add("ForwardDiff") # https://github.com/JuliaDiff/ForwardDiff.jl
@@ -79,9 +81,9 @@ println(" ")
         σ_ζ::Float64 = 1.30  ; # Standard deviation of interest rate target top 1% share of 20%
         # Model prices (partial equilibrium)
         r::Float64 = 0.0320 ; #  Target wealth weighted 3.79% average real return on net-worth (Fagereng et al. 2020)
-        w::Float64 = 53.624 ; # U.S. (2019) - tens of thousands $
+        w::Float64 = 53.624 ; # U.S. (2019) - thousands of dollars $
         # Borrowing constraint
-        a_min::Float64 = 1E-4 ; # Borrowing constraint
+        a_min::Float64 = 0.010 ; # Borrowing constraint (10 dollars)
         # VFI Parameters
         max_iter::Int64     = 20000 ; # Maximum number of iterations
         dist_tol::Float64   = 5E-6  ; # Tolerance for distance
@@ -104,9 +106,9 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Assets Grid
-        a_max::Float64  = 110000                     # Max node of a_grid
-        θ_a::Float64    = 3.5                        # Curvature of a_grid
-        θ_a_f::Float64  = 3.5                        # Curvature of a_grid_fine
+        a_max::Float64  = 100000                     # Max node of a_grid
+        θ_a::Float64    = 4.5                        # Curvature of a_grid
+        θ_a_f::Float64  = 4.5                        # Curvature of a_grid_fine
         n_a::Int64      = 250                        # Size of a_grid
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
@@ -163,23 +165,23 @@ println("\n===============================================\n Solving Aiyagari wi
 println("===============================================\n")
 
  
-# Get stats and graphs for the solution of the model 
-include("PrintStats_MakeGraphs.jl")
+# # Get stats and graphs for the solution of the model 
+# include("PrintStats_MakeGraphs.jl")
 
 
-# Get moments from histogram method
-include("CalculateMoments_Histogram.jl")
+# # Get moments from histogram method
+# include("CalculateMoments_Histogram.jl")
 
 
 # Get moments from simulation
 include("CalculateMoments_MonteCarlo.jl")
 
 
-# # # Run Draft Moments for Graphs and Tables 
-# include("Draft_Results.jl")
+# # Run Draft Moments for Graphs and Tables 
+include("Draft_Results.jl")
 
-# # Make Draft Graphs and Tables
-# include("Draft_Graphs_Tables.jl")
+# Make Draft Graphs and Tables
+include("Draft_Graphs_Tables.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")

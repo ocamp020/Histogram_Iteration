@@ -8,7 +8,7 @@
 ###################################################################
 ## Run Simulations
     M_P = Model_Panel() ; 
-    M_P = Simulate_Panel(M_Aiyagari,M_P,Seed_Flag=true) ;
+    M_P = Simulate_Panel(M_Aiyagari,M_P,true) ;
 
     fig_sample = [1000 ; collect(5000:5000:M_P.N_Panel)] ; 
     fig_N      = length(fig_sample)         ; 

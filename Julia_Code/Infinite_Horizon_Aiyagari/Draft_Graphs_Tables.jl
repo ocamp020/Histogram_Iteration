@@ -34,10 +34,13 @@ H_Pareto_Coeff  =          readdlm(Hist_Folder*"/H_Pareto_Coeff.csv", ',', Float
 H_Decile        = reshape( readdlm(Hist_Folder*"/H_Decile.csv"   , ',', Float64) , 11 , 2  , n_H ) ;
 H_Decile_Tr     = reshape( readdlm(Hist_Folder*"/H_Decile_Tr.csv", ',', Float64) , 10 , 10 , n_H ) ;
 H_Cons_Corr     =          readdlm(Hist_Folder*"/H_Cons_Corr.csv", ',', Float64) ;
+H_A_Corr        =          readdlm(Hist_Folder*"/H_A_Corr.csv"   , ',', Float64) ;
+H_ϵ_Corr        =          readdlm(Hist_Folder*"/H_eps_Corr.csv" , ',', Float64) ;
+H_ζ_Corr        =          readdlm(Hist_Folder*"/H_z_Corr.csv"   , ',', Float64) ;
 
 S_M_timed = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 4 ) ;
 S_M_bytes = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 4 ) ;
-S_Γ_timed =          readdlm(MC_Folder*"/S_Γ_timed.csv", ',', Float64)
+S_Γ_timed =          readdlm(MC_Folder*"/S_G_timed.csv", ',', Float64)
 
 S_Wealth_Sample = reshape( readdlm(MC_Folder*"/S_Wealth_Sample.csv", ',', Float64) , N_S , 1000000 ) ;
 S_Wealth_Stats  = reshape( readdlm(MC_Folder*"/S_Wealth_Stats.csv" , ',', Float64) , N_S , 6 ) ;
@@ -46,6 +49,9 @@ S_Pareto_Coeff  =          readdlm(MC_Folder*"/S_Pareto_Coeff.csv" , ',', Float6
 S_Decile        = reshape( readdlm(MC_Folder*"/S_Decile.csv"   , ',', Float64) , 11 , N_S ) ;
 S_Decile_Tr     = reshape( readdlm(MC_Folder*"/S_Decile_Tr.csv", ',', Float64) , 10 , 10 , N_S ) ;
 S_Cons_Corr     =          readdlm(MC_Folder*"/S_Cons_Corr.csv", ',', Float64) ;
+S_A_Corr        =          readdlm(MC_Folder*"/S_A_Corr.csv"   , ',', Float64) ;
+S_ϵ_Corr        =          readdlm(MC_Folder*"/S_eps_Corr.csv" , ',', Float64) ;
+S_ζ_Corr        =          readdlm(MC_Folder*"/S_z_Corr.csv"   , ',', Float64) ;
 
 
 
@@ -161,13 +167,13 @@ savefig("./"*Fig_Folder*"/Draft_Top_001_Share.pdf")
         xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul.pdf")
         # Add Histogram with 500 grid points 
-        ind     = H_a_grid[1:H_grid_size[2],2].>=1000 ;
-        grid_1M = H_a_grid[1:H_grid_size[2],2][ind]   ;
-        Γ_a     = H_Γ_a[1:H_grid_size[2],2] ; # Assets 
-        Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])     ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
-        CCDF_1M = 1 .- cumsum(Γ_a_1M)        ;
-        scatter!( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
-        plot!(    log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[2].*log.(grid_1M[1:end-1]./1000) , w=1.1, c=color_vec_H[1] , label=nothing )
+        ind_H     = H_a_grid[1:H_grid_size[2],2].>=1000 ;
+        grid_1M_H = H_a_grid[1:H_grid_size[2],2][ind_H]   ;
+        Γ_a_H     = H_Γ_a[1:H_grid_size[2],2] ; # Assets 
+        Γ_a_1M_H  = Γ_a_H[ind_H]/sum(Γ_a_H[ind_H])     ; Γ_a_1M_H = Γ_a_1M_H/sum(Γ_a_1M_H) ; 
+        CCDF_1M_H = 1 .- cumsum(Γ_a_1M_H)        ;
+        scatter!( log.(grid_1M_H[1:end-1]./1000) , log.(CCDF_1M_H[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
+        plot!(    log.(grid_1M_H[1:end-1]./1000) , H_Pareto_Coeff[2].*log.(grid_1M_H[1:end-1]./1000) , w=1.1, c=color_vec_H[1] , label=nothing )
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul_vs_Hist.pdf")
 
         # Separate plots 
@@ -307,10 +313,13 @@ Mat_Decile = [ "Deciles"        "" "" "" "";
 ###################################################################
 ## Consumption 3 Year Auto-Correlation 
 
-Mat_Cons_Corr = [ "Consumption Autocorrelation" "" "" "" "";
+Mat_Cons_Corr = [ "Autocorrelations" "" "" "" "";
                 "Histogram"      "" "" "" "";
                 "Grid Size"      H_grid_size                 ;
-                "Cons Auto-Corr" H_Cons_Corr'                ;
+                "Cons    Auto-Corr" H_Cons_Corr'             ;
+                "Assets  Auto-Corr" H_A_Corr'                ;
+                "Epsilon Auto-Corr" H_ϵ_Corr'                ;
+                "Z       Auto-Corr" H_ζ_Corr'                ;
                 "-" "-" "-" "-" "-";
                 "Total Time"     H_Γ_timed'.+H_M_timed[:,3]' ;
                 "Model Time"     H_Γ_timed'                  ;
@@ -320,7 +329,10 @@ Mat_Cons_Corr = [ "Consumption Autocorrelation" "" "" "" "";
                 "-" "-" "-" "-" "-";
                 "Simulation"     "" "" "" "";
                 "Grid Size"      "250k" "500k" "750k" "1M"   ;
-                "Cons Auto-Corr" S_Cons_Corr'                ;
+                "Cons    Auto-Corr" S_Cons_Corr'             ;
+                "Assets  Auto-Corr" S_A_Corr'                ;
+                "Epsilon Auto-Corr" S_ϵ_Corr'                ;
+                "Z       Auto-Corr" S_ζ_Corr'                ;
                 "-" "-" "-" "-" "-";
                 "Total Time"     S_Γ_timed.+S_M_timed[:,1]'.+S_M_timed[:,4]'  ;
                 "Model Time"     repeat([S_Γ_timed],1,N_S);
@@ -328,7 +340,7 @@ Mat_Cons_Corr = [ "Consumption Autocorrelation" "" "" "" "";
                 "Moment Time"    S_M_timed[:,4]'             ;
                 "-" "-" "-" "-" "-";];
 
-        open("./"*Fig_Folder*"/Table_Cons_Corr.csv", "w") do io
+        open("./"*Fig_Folder*"/Table_Auto_Corr.csv", "w") do io
         writedlm(io, Mat_Cons_Corr, ',')
         end;
 

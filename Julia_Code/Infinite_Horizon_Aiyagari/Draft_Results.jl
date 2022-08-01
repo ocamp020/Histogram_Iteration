@@ -5,7 +5,7 @@
 
 
 
-# =
+#=
 ###################################################################
 ###################################################################
 ## Histogram 
@@ -73,7 +73,7 @@ function H_Moments_Decile_Transitions(M::Model,N::Int)
             Γ_0[deciles_a[i]+1:deciles_a[i+1],:,:] = M.Γ[deciles_a[i]+1:deciles_a[i+1],:,:] ; 
             Γ_0 = Γ_0/sum(Γ_0) ; 
             # Iterate distribution 
-            Γ_N = Histogram_Iteration(M,N,Γ_0) ;
+            Γ_N = Histogram_Iteration(M,N,copy(Γ_0)) ;
             # Obtain transitions (sum over new distribution within deciles)
             Tr_deciles_a[i,:] = [100*sum( Γ_N[deciles_a[j]+1:deciles_a[j+1],:,:] ) for j in 1:10] ;
         end 
@@ -86,13 +86,14 @@ end
 
 ###################################################################
 ## 3 Year autocorrelation of consumption 
-function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
+function H_Moments_Auto_Correlation(M::Model,N::Int,a_min,a_max)
 
     # Get average consumption and standard deviation 
         # Initial distribution over asset range
-        Γ_q                     = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ)   ; 
-        Γ_q[a_min:a_max,:,:]    = M.Γ[a_min:a_max,:,:]            ; 
-        Γ_q                     = Γ_q/sum(Γ_q)                    ; 
+        Γ_q                  = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ)   ; 
+        Γ_q[a_min:a_max,:,:] = M.Γ[a_min:a_max,:,:]            ; 
+        Γ_q                  = Γ_q/sum(Γ_q)                    ; 
+            # println("Γ_q=$(sum(Γ_q)) - Γ_q_active=$(sum(Γ_q[a_min:a_max,:,:])) ")
         # Consumption 
         av_c_q = sum( M.G_c_fine[a_min:a_max,:,:].*Γ_q[a_min:a_max,:,:] ) ;
         sd_c_q = sqrt( sum( ((M.G_c_fine[a_min:a_max,:,:].-av_c_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
@@ -107,7 +108,8 @@ function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
         sd_ζ_q = sqrt( sum( ((log.(M.ζ_mat_fine[a_min:a_max,:,:]).-av_ζ_q).^2).*Γ_q[a_min:a_max,:,:] ) ) ;
     # Future average and standard deviation conditional on first quintile
         # Iterate distribution 
-        Γ_qN = Histogram_Iteration(M,N,Γ_q) ;
+        Γ_qN = Histogram_Iteration(M,N,copy(Γ_q)) ;
+            # println("Γ_qN=$(sum(Γ_qN)) - Γ_qN_active=$(sum(Γ_qN[a_min:a_max,:,:])) ")
         # Consumption
         av_c_q_N = sum( M.G_c_fine.*Γ_qN  )                            ;
         sd_c_q_N = sqrt( sum( ((M.G_c_fine.-av_c_q_N).^2).*Γ_qN  ) )   ; 
@@ -133,7 +135,7 @@ function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
                 Γ_0 = zeros(M.n_a_fine,M.n_ϵ,M.n_ζ) ; 
                 Γ_0[i_a,i_ϵ,i_ζ] = 1 ; 
                 # Iterate distribution
-                Γ_N = Histogram_Iteration(M,N,Γ_0) ;
+                Γ_N = Histogram_Iteration(M,N,copy(Γ_0)) ;
                 # Get portion of integrand (C_0 - av_c)*(C_n - av_c)*Γ_n
                 cov_c[i_a,i_ϵ,i_ζ] = sum( (      M.G_c_fine[i_a,i_ϵ,i_ζ]   .-av_c_q )*(      M.G_c_fine   .-av_c_q_N ).*Γ_N ) ;
                 cov_a[i_a,i_ϵ,i_ζ] = sum( (      M.a_mat_fine[i_a,i_ϵ,i_ζ] .-av_a_q )*(      M.a_mat_fine .-av_a_q_N ).*Γ_N ) ;
@@ -144,18 +146,19 @@ function H_Moments_C_Correlation(M::Model,N::Int,a_min,a_max)
         end 
 
     # Integrate with respect to initial distribution
-        cov_c_q  = sum( cov_c.*Γ_q )  ;     cor_c_q  = cov_c_q/(sd_c_q*sd_c_q_N) ; 
-        cov_a_q  = sum( cov_a.*Γ_q )  ;     cor_a_q  = cov_a_q/(sd_a_q*sd_a_q_N) ; 
-        cov_ϵ_q  = sum( cov_ϵ.*Γ_q )  ;     cor_ϵ_q  = cov_ϵ_q/(sd_ϵ_q*sd_ϵ_q_N) ; 
-        cov_ζ_q  = sum( cov_ζ.*Γ_q )  ;     cor_ζ_q  = cov_ζ_q/(sd_a_q*sd_ζ_q_N) ; 
-
+        cov_c_q  = sum( cov_c.*Γ_q )  ;     cor_c_q  = 100*cov_c_q/(sd_c_q*sd_c_q_N) ; 
+        cov_a_q  = sum( cov_a.*Γ_q )  ;     cor_a_q  = 100*cov_a_q/(sd_a_q*sd_a_q_N) ; 
+        cov_ϵ_q  = sum( cov_ϵ.*Γ_q )  ;     cor_ϵ_q  = 100*cov_ϵ_q/(sd_ϵ_q*sd_ϵ_q_N) ; 
+        cov_ζ_q  = sum( cov_ζ.*Γ_q )  ;     cor_ζ_q  = 100*cov_ζ_q/(sd_ζ_q*sd_ζ_q_N) ; 
+        # println("Γ_q=$(sum(Γ_q)) - Γ_q_active=$(sum(Γ_q[a_min:a_max,:,:])) ")
+        
     # Print other moments 
-        println("Moments for autocorrelation of consumption:")
-        println("cor_c=$(corr_c_q) - av_c_0=$av_c_q - av_c_T=$av_c_q_N - sd_c_0=$sd_c_q - sd_c_T=$sd_c_q_N - cov_0N=$cov_c_q")        
-        println("cor_a=$(corr_a_q) - av_a_0=$av_a_q - av_a_T=$av_a_q_N - sd_a_0=$sd_a_q - sd_a_T=$sd_a_q_N - cov_0N=$cov_a_q")        
-        println("cor_ϵ=$(corr_ϵ_q) - av_ϵ_0=$av_ϵ_q - av_ϵ_T=$av_ϵ_q_N - sd_ϵ_0=$sd_ϵ_q - sd_ϵ_T=$sd_ϵ_q_N - cov_0N=$cov_ϵ_q")        
-        println("cor_ζ=$(corr_ζ_q) - av_ζ_0=$av_ζ_q - av_ζ_T=$av_ζ_q_N - sd_ζ_0=$sd_ζ_q - sd_ζ_T=$sd_ζ_q_N - cov_0N=$cov_ζ_q")        
-
+        # println("Moments for autocorrelation of consumption:")
+        # println("cor_c=$(round(cor_c_q,digits=2)) - av_c_0=$(round(av_c_q,digits=3)) - av_c_T=$(round(av_c_q_N,digits=3)) - sd_c_0=$(round(sd_c_q,digits=2)) - sd_c_T=$(round(sd_c_q_N,digits=2)) - cov_0N=$(round(cov_c_q,digits=3))")        
+        # println("cor_a=$(round(cor_a_q,digits=2)) - av_a_0=$(round(av_a_q,digits=3)) - av_a_T=$(round(av_a_q_N,digits=3)) - sd_a_0=$(round(sd_a_q,digits=2)) - sd_a_T=$(round(sd_a_q_N,digits=2)) - cov_0N=$(round(cov_a_q,digits=3))")        
+        # println("cor_ϵ=$(round(cor_ϵ_q,digits=2)) - av_ϵ_0=$(round(av_ϵ_q,digits=3)) - av_ϵ_T=$(round(av_ϵ_q_N,digits=3)) - sd_ϵ_0=$(round(sd_ϵ_q,digits=2)) - sd_ϵ_T=$(round(sd_ϵ_q_N,digits=2)) - cov_0N=$(round(cov_ϵ_q,digits=3))")        
+        # println("cor_ζ=$(round(cor_ζ_q,digits=2)) - av_ζ_0=$(round(av_ζ_q,digits=3)) - av_ζ_T=$(round(av_ζ_q_N,digits=3)) - sd_ζ_0=$(round(sd_ζ_q,digits=2)) - sd_ζ_T=$(round(sd_ζ_q_N,digits=2)) - cov_0N=$(round(cov_ζ_q,digits=3))")        
+        println("cor_c=$(round(cor_c_q,digits=2)) - cor_a=$(round(cor_a_q,digits=2)) - cor_ϵ=$(round(cor_ϵ_q,digits=2)) - cor_ζ=$(round(cor_ζ_q,digits=2)) - a∈[$(round(M.a_mat_fine[a_min],digits=2)),$(round(M.a_mat_fine[a_max],digits=2))]")        
     # Return Moment 
         return cor_c_q, cor_a_q, cor_ϵ_q, cor_ζ_q 
 end 
@@ -190,7 +193,9 @@ end
 
     for i=1:n_H 
 
+        println(" ")
         println("   Histogram with $(H_grid_size[i]) Grid Points")
+        println(" ")
 
         # Set up model structure 
         M_Hist = Model(n_a_fine=H_grid_size[i],method=1,read_flag=true) ;
@@ -215,7 +220,7 @@ end
         
         
         # 4) Consumption Autocorrelation for first quintile
-        out, time, memory = @timed H_Moments_C_Correlation(M_Hist,N_Cons_Corr,1,Int(H_Decile[3,1,i])) ;
+        out, time, memory = @timed H_Moments_Auto_Correlation(M_Hist,N_Cons_Corr,1,Int(H_Decile[3,1,i])) ;
         H_Cons_Corr[i] = out[1] ; H_A_Corr[i] = out[2] ; H_ϵ_Corr[i] = out[3] ; H_ζ_Corr[i] = out[4] ;  
         H_M_timed[i,3] = time ; H_M_bytes[i,3] = memory ;
 
@@ -269,20 +274,20 @@ end
     writedlm(io, H_Cons_Corr, ',')
     end;
 
-    open(MC_Folder*"/H_A_Corr.csv", "w") do io
+    open(Hist_Folder*"/H_A_Corr.csv", "w") do io
     writedlm(io, H_A_Corr, ',')
     end;
 
-    open(MC_Folder*"/H_eps_Corr.csv", "w") do io
+    open(Hist_Folder*"/H_eps_Corr.csv", "w") do io
     writedlm(io, H_ϵ_Corr, ',')
     end;
 
-    open(MC_Folder*"/H_z_Corr.csv", "w") do io
+    open(Hist_Folder*"/H_z_Corr.csv", "w") do io
     writedlm(io, H_ζ_Corr, ',')
     end;
     
                    
-# =#
+=#
 
 ###################################################################
 ###################################################################
@@ -330,16 +335,20 @@ end
 
     for i=1:N_S
 
+        println(" ")
+        println("Simulation with $(S_sample[i]) agents")
+        println(" ")
+
     # Simulate Panel      
         M_Panel = Model_Panel(N_Panel=S_sample[i])   ;   
-        M_Panel, S_M_timed[i,1], S_M_bytes[i,1] = @timed Simulate_Panel(M_Simul,M_Panel,Seed_Flag=true) ; 
+        M_Panel, S_M_timed[i,1], S_M_bytes[i,1] = @timed Simulate_Panel(M_Simul,M_Panel,false) ; 
 
     # 1-2) Top Wealth Shares and Pareto Coefficient 
         a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
 
         # Select sample 
         a_sample  = M_Panel.a_mat[:,end] ;# M_Panel.a_mat[1:S_sample[i],end] ;
-        S_Wealth_Sample[i,:] = a_sample  ;
+        S_Wealth_Sample[i,1:S_sample[i]] = a_sample  ;
 
         # Average wealth 
         S_Wealth_Stats[i,end]     = mean( a_sample )   ;
@@ -379,8 +388,8 @@ end
         a, S_M_timed[i,4], S_M_bytes[i,4] = @timed begin 
 
         # Fix current sample and future sample 
-        a_aux_0 = M_Panel.a_mat[:,8]   ; c_aux_0 = M_Panel.c_mat[:,8]   ; ϵ_aux_0 = M_Panel.ϵ_mat[:,8]   ; ζ_aux_0 = M_Panel.ζ_mat[:,8]   ;
-        a_aux_T = M_Panel.a_mat[:,end] ; c_aux_T = M_Panel.c_mat[:,end] ; ϵ_aux_T = M_Panel.ϵ_mat[:,end] ; ζ_aux_T = M_Panel.ζ_mat[:,end] ;
+        a_aux_0 = M_Panel.a_mat[:, 8 ] ; c_aux_0 = M_Panel.c_mat[:, 8 ] ; ϵ_aux_0 = M_Simul.ϵ_grid[M_Panel.ϵ_mat[:, 8 ]] ; ζ_aux_0 = M_Simul.ζ_grid[M_Panel.ζ_mat[:, 8 ]]   ;
+        a_aux_T = M_Panel.a_mat[:,end] ; c_aux_T = M_Panel.c_mat[:,end] ; ϵ_aux_T = M_Simul.ϵ_grid[M_Panel.ϵ_mat[:,end]] ; ζ_aux_T = M_Simul.ζ_grid[M_Panel.ζ_mat[:,end]] ;
         # Find index of first quintile 
         ind_q         = findall(x-> 0<=x<=S_Decile[3,i], a_aux_0 ) ; # Index of first quintile of assets in T-1
         # Compute moments 
@@ -389,11 +398,15 @@ end
         S_ϵ_Corr[i]   = cor( [log.(ϵ_aux_0[ind_q]) log.(ϵ_aux_T[ind_q])]  ;dims=1)[2]  ;
         S_ζ_Corr[i]   = cor( [log.(ζ_aux_0[ind_q]) log.(ζ_aux_T[ind_q])]  ;dims=1)[2]  ; 
             # Deconstruct measure: mean, var, cov 
-            av_c_0   = mean(c_aux_0[ind_q]) ;
-            av_c_T   = mean(c_aux_T[ind_q]) ;
-            cov_c_0T = cov([c_aux_0[ind_q] c_aux_T[ind_q]]) ;  
+            av_c_0   = mean(     c_aux_0[ind_q] ) ; av_c_T   = mean(     c_aux_T[ind_q] ) ; cov_c_0T = cov([c_aux_0[ind_q] c_aux_T[ind_q]]) ;  
+            av_a_0   = mean(     a_aux_0[ind_q] ) ; av_a_T   = mean(     a_aux_T[ind_q] ) ; cov_a_0T = cov([a_aux_0[ind_q] a_aux_T[ind_q]]) ;  
+            av_ϵ_0   = mean(log.(ϵ_aux_0[ind_q])) ; av_ϵ_T   = mean(log.(ϵ_aux_T[ind_q])) ; cov_ϵ_0T = cov([log.(ϵ_aux_0[ind_q]) log.(ϵ_aux_T[ind_q])]) ;  
+            av_ζ_0   = mean(log.(ζ_aux_0[ind_q])) ; av_ζ_T   = mean(log.(ζ_aux_T[ind_q])) ; cov_ζ_0T = cov([log.(ζ_aux_0[ind_q]) log.(ζ_aux_T[ind_q])]) ;  
             println("Moments for autocorrelation of consumption:")
-            println("av_c_0=$av_c_0 - av_c_T=$av_c_T - sd_c_0=$(sqrt(cov_c_0T[1,1])) - sd_c_T=$(sqrt(cov_c_0T[2,2])) - cov_0N=$(cov_c_0T[1,2])") 
+            println("cor_c=$(round(100*S_Cons_Corr[i],digits=2)) - av_c_0=$(round(av_c_0,digits=3)) - av_c_T=$(round(av_c_T,digits=3)) - sd_c_0=$(round(sqrt(cov_c_0T[1,1]),digits=2)) - sd_c_T=$(round(sqrt(cov_c_0T[2,2]),digits=2)) - cov_0N=$(round(cov_c_0T[1,2],digits=3))") 
+            println("cor_a=$(round(100*S_A_Corr[i]   ,digits=2)) - av_a_0=$(round(av_a_0,digits=3)) - av_a_T=$(round(av_a_T,digits=3)) - sd_a_0=$(round(sqrt(cov_a_0T[1,1]),digits=2)) - sd_a_T=$(round(sqrt(cov_a_0T[2,2]),digits=2)) - cov_0N=$(round(cov_a_0T[1,2],digits=3))") 
+            println("cor_ϵ=$(round(100*S_ϵ_Corr[i]   ,digits=2)) - av_ϵ_0=$(round(av_ϵ_0,digits=3)) - av_ϵ_T=$(round(av_ϵ_T,digits=3)) - sd_ϵ_0=$(round(sqrt(cov_ϵ_0T[1,1]),digits=2)) - sd_ϵ_T=$(round(sqrt(cov_ϵ_0T[2,2]),digits=2)) - cov_0N=$(round(cov_ϵ_0T[1,2],digits=3))") 
+            println("cor_ζ=$(round(100*S_ζ_Corr[i]   ,digits=2)) - av_ζ_0=$(round(av_ζ_0,digits=3)) - av_ζ_T=$(round(av_ζ_T,digits=3)) - sd_ζ_0=$(round(sqrt(cov_ζ_0T[1,1]),digits=2)) - sd_ζ_T=$(round(sqrt(cov_ζ_0T[2,2]),digits=2)) - cov_0N=$(round(cov_ζ_0T[1,2],digits=3))") 
         # Time it 
         end  
 
@@ -405,6 +418,15 @@ end
 
     open(MC_Folder*"/S_M_bytes.csv", "w") do io
     writedlm(io, S_M_bytes , ',')
+    end;
+
+
+    open(MC_Folder*"/S_G_timed.csv", "w") do io
+    writedlm(io, S_Γ_timed , ',')
+    end;
+
+    open(MC_Folder*"/S_G_bytes.csv", "w") do io
+    writedlm(io, S_Γ_bytes , ',')
     end;
 
     open(MC_Folder*"/S_Wealth_Sample.csv", "w") do io
