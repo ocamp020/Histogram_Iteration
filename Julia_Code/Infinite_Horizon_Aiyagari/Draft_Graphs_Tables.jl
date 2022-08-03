@@ -127,80 +127,83 @@ savefig("./"*Fig_Folder*"/Draft_Top_001_Share.pdf")
 
 ###################################################################
 ## Pareto Tail 
+a_min_PT   = 5000 ; # 1000
+x_tick_PT  = [1,2,4,8,16] ; # [1,2,4,8,20,40,80]
+x_label_PT = ["\$5m","\$10m","\$20m","\$40m","\$80m"]; # ["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"]
 # Results from Histogram (comparind different grid sizes)
         gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing)
-        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000] , label=nothing )
+        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT] , label=nothing )
         for i=1:n_H 
-                ind     = H_a_grid[1:H_grid_size[i],i].>=1000 ;
+                ind     = H_a_grid[1:H_grid_size[i],i].>=a_min_PT ;
                 grid_1M = H_a_grid[1:H_grid_size[i],i][ind]   ;
                 Γ_a     = H_Γ_a[1:H_grid_size[i],i] ; # Assets 
                 Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])     ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
                 CCDF_1M = 1 .- cumsum(Γ_a_1M)        ;
-                scatter!( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:diamond ,3,0.75,color_vec_H[i]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[i],digits=2)),\,N=%$(H_grid_size[i])" )   
-                plot!(    log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./1000) , w=1.1, c=color_vec_H[i] , label=nothing )
-                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(H_Pareto_Coeff[i],digits=2))",11)
+                scatter!( log.(grid_1M[1:end-1]./a_min_PT) , log.(CCDF_1M[1:end-1]) , marker=(:diamond ,3,0.75,color_vec_H[i]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[i],digits=2)),\,N=%$(H_grid_size[i])" )   
+                plot!(    log.(grid_1M[1:end-1]./a_min_PT) , H_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./a_min_PT) , w=1.1, c=color_vec_H[i] , label=nothing )
+                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./a_min_PT)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(H_Pareto_Coeff[i],digits=2))",11)
                 ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
         end 
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
         title!("Distribution Tail - Histogram",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-        xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
+        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Hist.pdf")
 
 # Results from Monte Carlo (comparind different simulation sizes)
         gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing)
-        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000] , label=nothing )
+        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT] , label=nothing )
         for i=1:N_S 
-                ind     = S_Wealth_Sample[i,1:S_sample[i]].>=1000 ;
+                ind     = S_Wealth_Sample[i,1:S_sample[i]].>=a_min_PT ;
                 grid_1M = sort( S_Wealth_Sample[i,1:S_sample[i]][ind] )  ;
                 CCDF_1M = collect(length(grid_1M):-1:1)./length(grid_1M) ; # Counter CDF = 1- CDF
-                scatter!( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,0.75,color_vec_S[i]) , markerstrokewidth=0 , label=L"\alpha_{S}=%$(round(S_Pareto_Coeff[i],digits=2)),\,N=%$(Int(S_sample[i]/1000))k" )   
-                plot!(    log.(grid_1M[1:end-1]./1000) , S_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./1000) , w=1.1, c=color_vec_S[i] , label=nothing )
-                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(S_Pareto_Coeff[i],digits=2))",11)
+                scatter!( log.(grid_1M[1:end-1]./a_min_PT) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,0.75,color_vec_S[i]) , markerstrokewidth=0 , label=L"\alpha_{S}=%$(round(S_Pareto_Coeff[i],digits=2)),\,N=%$(Int(S_sample[i]/1000))k" )   
+                plot!(    log.(grid_1M[1:end-1]./a_min_PT) , S_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./a_min_PT) , w=1.1, c=color_vec_S[i] , label=nothing )
+                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./a_min_PT)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(S_Pareto_Coeff[i],digits=2))",11)
                 ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
         end 
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
-        title!("Distribution Tail - Simulation",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-        xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
+        # title!("Distribution Tail - Simulation",titlefont=14)
+        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul.pdf")
         # Add Histogram with 500 grid points 
-        ind_H     = H_a_grid[1:H_grid_size[2],2].>=1000 ;
+        ind_H     = H_a_grid[1:H_grid_size[2],2].>=a_min_PT ;
         grid_1M_H = H_a_grid[1:H_grid_size[2],2][ind_H]   ;
         Γ_a_H     = H_Γ_a[1:H_grid_size[2],2] ; # Assets 
         Γ_a_1M_H  = Γ_a_H[ind_H]/sum(Γ_a_H[ind_H])     ; Γ_a_1M_H = Γ_a_1M_H/sum(Γ_a_1M_H) ; 
         CCDF_1M_H = 1 .- cumsum(Γ_a_1M_H)        ;
-        scatter!( log.(grid_1M_H[1:end-1]./1000) , log.(CCDF_1M_H[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
-        plot!(    log.(grid_1M_H[1:end-1]./1000) , H_Pareto_Coeff[2].*log.(grid_1M_H[1:end-1]./1000) , w=1.1, c=color_vec_H[1] , label=nothing )
+        scatter!( log.(grid_1M_H[1:end-1]./a_min_PT) , log.(CCDF_1M_H[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
+        plot!(    log.(grid_1M_H[1:end-1]./a_min_PT) , H_Pareto_Coeff[2].*log.(grid_1M_H[1:end-1]./a_min_PT) , w=1.1, c=color_vec_H[1] , label=nothing )
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul_vs_Hist.pdf")
 
         # Separate plots 
         for i=1:N_S 
         gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing)
-        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<1000] , label=nothing )
-                ind     = S_Wealth_Sample[i,1:S_sample[i]].>=1000 ;
+        plot(log.(M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT]),M_Aiyagari.a_grid[M_Aiyagari.a_grid.<a_min_PT] , label=nothing )
+                ind     = S_Wealth_Sample[i,1:S_sample[i]].>=a_min_PT ;
                 grid_1M = sort( S_Wealth_Sample[i,1:S_sample[i]][ind] )  ;
                 CCDF_1M = collect(length(grid_1M):-1:1)./length(grid_1M) ; # Counter CDF = 1- CDF
-                scatter!( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,0.75,color_vec_S[i]) , markerstrokewidth=0 , label=L"\alpha_{S}=%$(round(S_Pareto_Coeff[i],digits=2)),\,N=%$(Int(S_sample[i]/1000))k" )   
-                plot!(    log.(grid_1M[1:end-1]./1000) , S_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./1000) , w=1.1, c=color_vec_S[i] , label=nothing )
-                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(S_Pareto_Coeff[i],digits=2))",11)
+                scatter!( log.(grid_1M[1:end-1]./a_min_PT) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,0.75,color_vec_S[i]) , markerstrokewidth=0 , label=L"\alpha_{S}=%$(round(S_Pareto_Coeff[i],digits=2)),\,N=%$(Int(S_sample[i]/1000))k" )   
+                plot!(    log.(grid_1M[1:end-1]./a_min_PT) , S_Pareto_Coeff[i].*log.(grid_1M[1:end-1]./a_min_PT) , w=1.1, c=color_vec_S[i] , label=nothing )
+                # annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./a_min_PT)),mean(log.(CCDF_1M[1:end-1])),"α_H=$(round(S_Pareto_Coeff[i],digits=2))",11)
                 ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
         
                 # Add Histogram with 500 grid points 
-                ind     = H_a_grid[1:H_grid_size[2],2].>=1000 ;
+                ind     = H_a_grid[1:H_grid_size[2],2].>=a_min_PT ;
                 grid_1M = H_a_grid[1:H_grid_size[2],2][ind]   ;
                 Γ_a     = H_Γ_a[1:H_grid_size[2],2] ; # Assets 
                 Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])     ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
                 CCDF_1M = 1 .- cumsum(Γ_a_1M)        ;
-                scatter!( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
-                plot!(    log.(grid_1M[1:end-1]./1000) , H_Pareto_Coeff[2].*log.(grid_1M[1:end-1]./1000) , w=1.1, c=color_vec_H[1] , label=nothing )
+                scatter!( log.(grid_1M[1:end-1]./a_min_PT) , log.(CCDF_1M[1:end-1]) , marker=(:diamond ,3,0.5,color_vec_H[1]) , markerstrokewidth=0 , label=L"\alpha_{H}=%$(round(H_Pareto_Coeff[2],digits=2)),\,N=%$(H_grid_size[2])" )   
+                plot!(    log.(grid_1M[1:end-1]./a_min_PT) , H_Pareto_Coeff[2].*log.(grid_1M[1:end-1]./a_min_PT) , w=1.1, c=color_vec_H[1] , label=nothing )
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
-        title!("Distribution Tail - Simulation",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-        xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
+        # title!("Distribution Tail - Simulation",titlefont=14)
+        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul_$(Int(S_sample[i]/1000))k.pdf")
         end 
 
