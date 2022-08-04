@@ -146,7 +146,7 @@ x_label_PT = ["\$5m","\$10m","\$20m","\$40m","\$80m"]; # ["\$1m","\$2m","\$4m","
         end 
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
-        title!("Distribution Tail - Histogram",titlefont=14)
+        # title!("Distribution Tail - Histogram",titlefont=14)
         xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
         xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Hist.pdf")
@@ -314,11 +314,11 @@ Mat_Decile = [ "Deciles"        "" "" "" "";
 
 
 ###################################################################
-## Consumption 3 Year Auto-Correlation 
+## Moments
 
-Mat_Cons_Corr = [ "Autocorrelations" "" "" "" "";
+Mat_Corr = [ "Autocorrelations" "" "" "" "";
                 "Histogram"      "" "" "" "";
-                "Grid Size"      H_grid_size                 ;
+                "Grid Size"         H_grid_size                 ;
                 "Cons    Auto-Corr" H_Cons_Corr'             ;
                 "Assets  Auto-Corr" H_A_Corr'                ;
                 "Epsilon Auto-Corr" H_ϵ_Corr'                ;
@@ -331,7 +331,7 @@ Mat_Cons_Corr = [ "Autocorrelations" "" "" "" "";
                 "-" "-" "-" "-" "-";
                 "-" "-" "-" "-" "-";
                 "Simulation"     "" "" "" "";
-                "Grid Size"      "250k" "500k" "750k" "1M"   ;
+                "Sample Size"      "250k" "500k" "750k" "1M"   ;
                 "Cons    Auto-Corr" S_Cons_Corr'             ;
                 "Assets  Auto-Corr" S_A_Corr'                ;
                 "Epsilon Auto-Corr" S_ϵ_Corr'                ;
@@ -344,6 +344,6 @@ Mat_Cons_Corr = [ "Autocorrelations" "" "" "" "";
                 "-" "-" "-" "-" "-";];
 
         open("./"*Fig_Folder*"/Table_Auto_Corr.csv", "w") do io
-        writedlm(io, Mat_Cons_Corr, ',')
+        writedlm(io, Mat_Corr, ',')
         end;
 

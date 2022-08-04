@@ -250,11 +250,11 @@ function Histogram_Method_Loop(M::Model,Γ_0=nothing)
         
         # Report progress
         if mod(i_H,10)==0
-            @printf("\n         Histogram Loop: iter = %d, dist = %.4e, check = %.3f",i_H,H_dist,sum(Γ))
+            @printf("\n         Histogram Loop: iter = %d, dist = %.2e, check Γ= %.2f, check E[a]= %.2f",i_H,H_dist,sum(Γ),sum(a_grid_fine.*sum(Γ,dims=(2,3))))
         end
         # Check convergence
         if H_dist<Hist_tol
-            @printf("\n     Histogram iteartion converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
+            @printf("\n     Histogram iteartion converged in iteration %d. H_dist=%.2e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo_s=H_ω_lo_s, H_ω_hi_s=H_ω_hi_s, H_ω_lo_d=H_ω_lo_d, H_ω_hi_d=H_ω_hi_d)
             return M
         end
@@ -371,7 +371,7 @@ function Aiyagari_Equilibrium(M_in::Model)
     end 
 
     # Compute Policy Functions
-    M_in   = Solve_Policy_Functions(T_BI_G,M_in) ;
+    M_in  = Solve_Policy_Functions(T_BI_G,M_in) ;
 
     # Compute Distribution
     M_in  = Histogram_Method_Loop(M_in,Γ_0) ;

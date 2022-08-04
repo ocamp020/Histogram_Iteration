@@ -304,25 +304,25 @@ end
     # M_Panel = Model_Panel(N_Panel=1000000)   ; 
 
     # Set up discrete observations 
-    S_sample = 250000:250000:1000000 ; 
-    N_S      = length(S_sample)          ;
-    pct_list = [90;95;99;99.9;99.99]     ;  
+    S_sample = 250000:250000:1000000    ; 
+    N_S      = length(S_sample)         ;
+    pct_list = [90;95;99;99.9;99.99]    ;  
 
-    S_M_timed      = zeros(N_S,4)     ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
-    S_M_bytes      = zeros(N_S,4)     ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
+    S_M_timed      = zeros(N_S,4)       ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
+    S_M_bytes      = zeros(N_S,4)       ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
     
     S_Wealth_Sample= zeros(N_S,1000000) ;
     S_Wealth_Stats = zeros(N_S,6)       ; 
     S_Wealth_Share = zeros(N_S,5)       ; 
     S_Pareto_Coeff = zeros(N_S  )       ;  
 
-    S_Decile       = zeros(11,N_S)    ;
-    S_Decile_Tr    = zeros(10,10,N_S) ;
+    S_Decile       = zeros(11,N_S)      ;
+    S_Decile_Tr    = zeros(10,10,N_S)   ;
 
-    S_Cons_Corr    = zeros(N_S)       ;
-    S_A_Corr       = zeros(N_S)       ;
-    S_ϵ_Corr       = zeros(N_S)       ;
-    S_ζ_Corr       = zeros(N_S)       ;
+    S_Cons_Corr    = zeros(N_S)         ;
+    S_A_Corr       = zeros(N_S)         ;
+    S_ϵ_Corr       = zeros(N_S)         ;
+    S_ζ_Corr       = zeros(N_S)         ;
     
     # Solve model 
     M_Simul, S_Γ_timed, S_Γ_bytes = @timed Aiyagari_Equilibrium(M_Simul);

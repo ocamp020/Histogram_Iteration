@@ -12,15 +12,15 @@
 
 ## Change to your home directory 
 # Sergio's Computer 
-#    cd()
-#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+   cd()
+   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Baxter's Computer
-     cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
+    #  cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 # Compute Canada Server
     # cd("/scratch/robin370/Histogram_Iteration/Julia_Code/OLG_Aiyagari/")
 
@@ -78,7 +78,7 @@ include("Setup_Demographics.jl")
         r::Float64 = 0.0379   ; # Target wealth weighted 3.79% average real return on net-worth (Fagereng et al. 2020)
         w::Float64 = 53.624   ; # U.S. (2019) - tens of thousands $
         # Borrowing constraint
-        a_min::Float64 = 1E-4 ; # Borrowing constraint
+        a_min::Float64 = 1E-3 ; # Borrowing constraint
         # Histogram iteration parameters
         Hist_max_iter       = 1000  ; # Maximum number of iterations
         Hist_tol            = 1E-6  ; # Tolerance for distance
@@ -136,12 +136,12 @@ p = Par();
         V_fine    = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Value Function on fine grid
         G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
-        # Distribution
-        for i_h=1;p.Max_Age
-        for i_ϵ=1:n_ϵ
-        Γ[:,i_ϵ,i_h] .= 1/(n_a_fine)*MP_ϵ.PDF[i_ϵ]*p.Age_PDF[i_h] # Distribution (initiliazed to uniform)
-        end
-        end
+        # Distribution Guess 
+        n_cut_fine= Grid_Inv(1000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
+        Γ_a_guess = 1/(n_cut_fine).*([ones(n_cut_fine,n_ϵ,p.Max_Age) ;; zeros(n_a_fine-n_cut_fine,n_ϵ,p.Max_Age)])
+        # Γ_a_guess = repeat((0.15)*(1-0.15).^collect(0:n_a_fine-1),1,n_ϵ,p.Max_Age)/sum((0.15)*(1-0.15).^collect(0:n_a_fine-1)) 
+        Γ         = Γ_a_guess.*repeat(MP_ϵ.PDF',n_a_fine,1,p.Max_Age).*repeat(reshape(p.Age_PDF,(1,1,p.Max_Age)),n_a_fine,n_ϵ,1) 
+        # Matrices for discretization of policy functions
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)              # Index for discretization of savings choice 
         # H_ω       = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)                    # Probability of transition lo low index in discretization
         H_ω_lo_s   = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age,n_ϵ)
@@ -157,7 +157,10 @@ M = Model();
 # Load functions in Functions_ModelSolution (solve the model and find stationary distribution)
 include("Functions_ModelSolution.jl")
 
+# Load functions in Functions_Montecarlo (Simulate panels of individual agents)
+include("Functions_MonteCarlo.jl")
 
+stop
 # Execute model solution 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
     
@@ -177,12 +180,12 @@ println("===============================================\n")
 # # Get moments from simulation
 # include("CalculateMoments_MonteCarlo.jl")
 
-# Add Simulation Functions
-include("Functions_MonteCarlo.jl")
-
 
 # Run Draft Moments for Graphs and Tables 
 include("Draft_Results.jl")
+
+# Make Draft Graphs and Tables
+include("Draft_Graphs_Tables.jl")
 
 
 println("\n===============================================\n\n    End of Script \n\n===============================================")

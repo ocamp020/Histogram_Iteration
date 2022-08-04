@@ -249,12 +249,12 @@ function Histogram_Method_Loop(M::Model,N_H=nothing,Γ_0=nothing)
         # Update initial distribution
         Γ_0 .= (1-Hist_η)*Γ .+ Hist_η*Γ_0
         # Report progress
-        if mod(i_H,10)==0
-            @printf("\n   Histogram Loop: iter = %d, dist = %.4e, E[a] = %.4e",i_H,H_dist,sum(a_grid_fine.*dropdims( sum( Γ , dims=(3,2) ) , dims=(3,2) )))
+        if mod(i_H,50)==0
+            @printf("\n   Histogram Loop: iter = %d, dist = %.2e, E[a] = %.2e",i_H,H_dist,sum(a_grid_fine.*dropdims( sum( Γ , dims=(3,2) ) , dims=(3,2) )))
         end
         # Check convergence
         if (H_dist<Hist_tol)
-            @printf("\nHistogram iteration converged in iteration %d. H_dist=%.4e \n--------------------------------\n",i_H,H_dist)
+            @printf("\nHistogram iteration converged in iteration %d. H_dist=%.2e \n--------------------------------\n",i_H,H_dist)
             M = Model(M; Γ=Γ, H_ind=H_ind, H_ω_lo=H_ω_lo, H_ω_hi=H_ω_hi)
             return M
         end

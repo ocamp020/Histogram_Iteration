@@ -99,7 +99,7 @@ end
 
 ###################################################################
 ## Run Histogram Simulation for Different Grids 
-    H_grid_size = 100:50:1000 ; 
+    H_grid_size =  [250 500 750 1000] ; # 100:50:1000 ; 
     n_H = length(H_grid_size) ;
     H_Γ_timed = zeros(n_H)    ; 
     H_Γ_bytes = zeros(n_H)    ;
@@ -117,7 +117,9 @@ end
 
     for i=1:n_H 
 
+        println(" ")
         println("   Histogram with $(H_grid_size[i]) Grid Points")
+        println(" ")
 
         # Set up model structure 
         M_Hist = Model(n_a_fine=H_grid_size[i],read_flag=false) ;
@@ -184,20 +186,20 @@ end
     age_T_Wealth_Corr    =  36           ; 
 
     # Set up model structures
-    M_Simul = Model(read_flag=false) ;
-    M_Panel = Model_Panel( N_Panel=500000) ;
+    M_Simul = Model(read_flag=false)        ;
+    M_Panel = Model_Panel( N_Panel=500000)  ;
     M_C_45  = Model_Cohort(N_Panel=500000,T_Panel=M_Aiyagari.p.Max_Age-(age_0_Wealth_Profile-1))    ; 
     M_C_35  = Model_Cohort(N_Panel=500000,T_Panel=M_Aiyagari.p.Max_Age-(age_0_Wealth_Corr-1)   )    ; 
         
 
     # Set up discrete observations 
-    S_sample = 10000:1000:M_Panel.N_Panel ; 
-    N_S      = length(S_sample)          ;
-    pct_list = [90;95;99;99.9;99.99]     ; 
-    med_ϵ  = convert(Int64,round(M.n_ϵ/2)) ;
+    S_sample = [100000 250000 350000 500000] ;  # 10000:1000:M_Panel.N_Panel ; 
+    N_S      = length(S_sample)              ;
+    pct_list = [90;95;99;99.9;99.99]         ; 
+    med_ϵ    = convert(Int64,round(M.n_ϵ/2)) ;
 
-    S_M_timed      = zeros(N_S,2)     ; 
-    S_M_bytes      = zeros(N_S,2)     ;
+    S_M_timed  = zeros(N_S,5)     ;
+    S_M_bytes  = zeros(N_S,3)     ;
     
     S_Wealth_Profile_NB = zeros(M_Aiyagari.p.Max_Age,6,N_S) ; 
     S_Wealth_Profile_45 = zeros(M_Aiyagari.p.Max_Age,6,N_S) ; 
@@ -209,17 +211,32 @@ end
     M_Simul, S_Γ_timed, S_Γ_bytes = @timed Aiyagari_Equilibrium(M_Simul);
 
     # Simulate Panel 
-    M_Panel = Simulate_Panel_Timed(M_Simul,M_Panel) ; 
+    M_Panel = Simulate_Panel_Timed(M_Simul,M_Panel) ;
+        # Save Time 
+        Simul_Time     = cumsum(M_Panel.t_mat)   ; 
+        for i=1:N_S 
+        S_M_timed[i,1] = Simul_Time[S_sample[i]] ;
+        end 
 
     # Simulate Cohorts
     M_C_45 = Simulate_Cohort_Timed(M_Simul,M_C_45,age_0_Wealth_Profile) ; 
-    M_C_35 = Simulate_Cohort_Timed(M_Simul,M_C_35,age_0_Wealth_Corr   ) ; 
+        # Save Time 
+        Simul_Time     = cumsum(M_C_45.t_mat)   ; 
+        for i=1:N_S 
+        S_M_timed[i,4] = Simul_Time[S_sample[i]] ;
+        end
+    M_C_35 = Simulate_Cohort_Timed(M_Simul,M_C_35,age_0_Wealth_Corr   ) ;
+        # Save Time 
+        Simul_Time     = cumsum(M_C_35.t_mat)   ; 
+        for i=1:N_S 
+        S_M_timed[i,5] = Simul_Time[S_sample[i]] ;
+        end 
     
     ## Moments 
 
     # 1) Wealth Profiles 
     for i=1:N_S 
-        a, S_M_timed[i,1], S_M_bytes[i,1] = @timed begin 
+        a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
 
         ## New Borns            
         # Select sample 
@@ -267,11 +284,11 @@ end
 
     # 2) Wealth Autocorrelation 35-65
     for i=1:N_S 
-        a, S_M_timed[i,2], S_M_bytes[i,2] = @timed begin 
+        a, S_M_timed[i,3], S_M_bytes[i,3] = @timed begin 
 
-        # Fix current sample 
-        a_aux_0       = M_C_35.a_mat[1:S_sample[i],1]   ;
-        a_aux_T       = M_C_35.a_mat[1:S_sample[i],age_T_Wealth_Corr-age_0_Wealth_Corr] ;
+        # Use expanded sample 
+            a_aux_0       = M_C_35.a_mat[1:S_sample[i],1]   ;
+            a_aux_T       = M_C_35.a_mat[1:S_sample[i],age_T_Wealth_Corr-age_0_Wealth_Corr] ;
         # Compute moments 
         S_Wealth_Corr[i]  = cor( [a_aux_0 a_aux_T]  ;dims=1)[2]              ;  
         
@@ -300,98 +317,3 @@ end
     writedlm(io, S_Wealth_Corr , ',')
     end;
 
-                        
-
-
-
-
-###################################################################
-###################################################################
-## Graphs and Tables 
-    
-
-
-###################################################################
-## Load results from csv files 
-    H_grid_size = 100:50:1000 ; 
-    n_H = length(H_grid_size) ;
-    pct_list = [90;95;99;99.9;99.99] ;
-    S_sample = 10000:1000:M_Panel.N_Panel ; 
-    N_S      = length(S_sample)          ;
-    
-    H_Γ_timed =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;
-    H_Γ_bytes =          readdlm(Hist_Folder*"/H_G_bytes.csv", ',', Float64) ;
-    H_M_timed = reshape( readdlm(Hist_Folder*"/H_M_timed.csv", ',', Float64) , n_H , 2 ) ;
-    H_M_bytes = reshape( readdlm(Hist_Folder*"/H_M_bytes.csv", ',', Float64) , n_H , 2 ) ;
-
-    H_Wealth_Profile_NB  = reshape( readdlm(Hist_Folder*"/H_Wealth_Profile_NB.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
-    H_Wealth_Profile_45  = reshape( readdlm(Hist_Folder*"/H_Wealth_Profile_45.csv", ',', Float64) , M_Aiyagari.p.Max_Age-age_0_Wealth_Profile+1 , 6 , N_S ) ;
-    H_Wealth_Corr        =          readdlm(Hist_Folder*"/H_Wealth_Corr.csv"      , ',', Float64) ;    
-    
-    S_M_timed = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 2 ) ;
-    S_M_bytes = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 2 ) ;
-
-    S_Wealth_Profile_NB  = reshape( readdlm(MC_Folder*"/S_Wealth_Profile_NB.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
-    S_Wealth_Profile_45  = reshape( readdlm(MC_Folder*"/S_Wealth_Profile_45.csv", ',', Float64) , M_Aiyagari.p.Max_Age , 6 , N_S ) ;
-    S_Wealth_Corr        =          readdlm(MC_Folder*"/S_Wealth_Corr.csv"      , ',', Float64) ;    
- 
-    
-###################################################################
-## Wealth Profiles
-    # 10k Observations 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    # Average percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,end, 9] , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,10] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,end, 9] , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,end,10] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    # 90th percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,3, 9] , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,3,10] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,3, 9] , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,3,10] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    # 99th percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,4, 9] , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,4,10] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,4, 9] , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,4,10] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    ylims!(0,ceil(maximum(S_Wealth_Profile_45[:,4]/10))*10)
-    title!("Age Profile: Average, 90th, 99th Percentiles of Assets",titlefont=14)
-    xlabel!("Age",labelsize=18); ylabel!("Thousands of Dollars",labelsize=18)
-    xticks!(45:10:100)
-    savefig("./"*Fig_Folder*"/Draft_Wealth_Profile_45_10k.pdf")
-
-
-
-    # 100k Observations 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    # Average percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,end, 9]  , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,100] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,end, 9]  , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,end,100] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    # 90th percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,3, 9]  , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,3,100] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,3, 9]  , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,3,100] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    # 99th percentile 
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,4, 9]  , marker=(:circle ,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,4,100] , marker=(:diamond,2 ,:gray70),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , H_Wealth_Profile_45[age_0_Wealth_Profile:end,4, 9]  , marker=(:circle ,3 ,:cornflowerblue),label=nothing)
-    scatter(  45:(19+M_Aiyagari.p.Max_Age) , S_Wealth_Profile_45[age_0_Wealth_Profile:end,4,100] , marker=(:diamond,3 ,:cornflowerblue),label=nothing)
-    ylims!(0,ceil(maximum(S_Wealth_Profile_45[:,4]/10))*10)
-    title!("Age Profile: Average, 90th, 99th Percentiles of Assets",titlefont=14)
-    xlabel!("Age",labelsize=18); ylabel!("Thousands of Dollars",labelsize=18)
-    xticks!(45:10:100)
-    savefig("./"*Fig_Folder*"/Draft_Wealth_Profile_45_100k.pdf")
-
-
-###################################################################
-## Wealth Auto-Correlation 
-    Mat = [ H_Wealth_Corr[1]  H_Wealth_Corr[4]  H_Wealth_Corr[9]   S_Wealth_Corr[10]                 S_Wealth_Corr[100]                 S_Wealth_Corr[500] ;
-            H_Γ_timed[1]      H_Γ_timed[4]      H_Γ_timed[9]       S_Γ_timed+M_Panel.t_vec[10000]    S_Γ_timed+M_Panel.t_vec[100000]    S_Γ_timed+M_Panel.t_vec[500000] ;
-            H_Timed[1,2]      H_Timed[4,2]      H_Timed[9,2]       S_M_timed[10,2]                   S_M_timed[100,2]                   S_M_timed[500,2]   ] ;
-
-
- 
