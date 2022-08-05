@@ -14,16 +14,16 @@
 # The constant ϵ̄ guarantees that E[ϵ]=1 and so aggregate labor L=E[ϵ]=1
 
 ## Change to your home directory 
-# Sergio's Computer 
-   cd()
-   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+# # Sergio's Computer 
+#    cd()
+#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-    # cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+     cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Compute Canada Server
 #    cd("/scratch/robin370/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
@@ -139,7 +139,7 @@ p = Par();
         G_ap_fine = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ)  # Policy Function on fine grid
         # Distribution
-        Γ         = 1/(n_cut_fine*n_ϵ*n_ζ)*[ones(n_cut_fine,n_ϵ,n_ζ) ;; zeros(n_a_fine-n_cut_fine,n_ϵ,n_ζ)]     # Distribution (initiliazed to uniform)
+        Γ         = 1/(n_cut_fine*n_ϵ*n_ζ)*[ones(n_cut_fine,n_ϵ,n_ζ) ; zeros(n_a_fine-n_cut_fine,n_ϵ,n_ζ)]     # Distribution (initiliazed to uniform)
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,n_ζ)            # Index for discretization of savings choice 
         H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
