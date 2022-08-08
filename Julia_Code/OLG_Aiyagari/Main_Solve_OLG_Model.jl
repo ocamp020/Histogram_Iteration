@@ -138,8 +138,8 @@ p = Par();
         G_c_fine  = Array{Float64}(undef,n_a_fine,n_ϵ,p.Max_Age)  # Policy Function on fine grid
         # Distribution Guess 
         n_cut_fine= Grid_Inv(1000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
-        Γ_a_guess = 1/(n_cut_fine).*([ones(n_cut_fine,n_ϵ,p.Max_Age) ;; zeros(n_a_fine-n_cut_fine,n_ϵ,p.Max_Age)])
-        # Γ_a_guess = repeat((0.15)*(1-0.15).^collect(0:n_a_fine-1),1,n_ϵ,p.Max_Age)/sum((0.15)*(1-0.15).^collect(0:n_a_fine-1)) 
+        Γ_a_guess = 1/(n_cut_fine).*([ones(n_cut_fine,n_ϵ,p.Max_Age) ; zeros(n_a_fine-n_cut_fine,n_ϵ,p.Max_Age)]) 
+        # # Γ_a_guess = repeat((0.15)*(1-0.15).^collect(0:n_a_fine-1),1,n_ϵ,p.Max_Age)/sum((0.15)*(1-0.15).^collect(0:n_a_fine-1)) 
         Γ         = Γ_a_guess.*repeat(MP_ϵ.PDF',n_a_fine,1,p.Max_Age).*repeat(reshape(p.Age_PDF,(1,1,p.Max_Age)),n_a_fine,n_ϵ,1) 
         # Matrices for discretization of policy functions
         H_ind     = Array{Int64}(undef,n_a_fine,n_ϵ,p.Max_Age)              # Index for discretization of savings choice 
@@ -181,8 +181,8 @@ println("===============================================\n")
 # include("CalculateMoments_MonteCarlo.jl")
 
 
-# Run Draft Moments for Graphs and Tables 
-include("Draft_Results.jl")
+# # Run Draft Moments for Graphs and Tables 
+# include("Draft_Results.jl")
 
 # Make Draft Graphs and Tables
 include("Draft_Graphs_Tables.jl")
