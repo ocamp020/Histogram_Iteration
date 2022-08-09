@@ -109,7 +109,7 @@ p = Par();
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         # Labor productivity process - Transitory 
-        n_ϵ       = 15                                 # Size of ϵ_grid
+        n_ϵ       = 11                                 # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
         ϵ_ref     = 1.038479216975849/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels

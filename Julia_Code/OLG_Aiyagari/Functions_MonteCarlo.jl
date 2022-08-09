@@ -11,8 +11,8 @@
     # Size 
     N_Panel::Int64 = 500000 ; # Number of dynasties to be simulated 
     T_Panel::Int64 = 10      ; # Number of periods to be saved of the dynasties 
-    T_Simul::Int64 = 2000    ; # Number of periods to be simulated 
-    N_Min::Int64   = 1000    ; # Minimum numberof dynasties for moments
+    T_Simul::Int64 = 1500    ; # Number of periods to be simulated 
+    N_Min::Int64   = 1000    ; # Minimum number of dynasties for moments
     # Panel output 
     a_mat = Array{Float32}(undef,N_Panel,T_Panel) ; # Assets
     c_mat = Array{Float32}(undef,N_Panel,T_Panel) ; # Consumption 
