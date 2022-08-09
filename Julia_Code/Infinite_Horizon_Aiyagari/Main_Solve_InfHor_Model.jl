@@ -120,7 +120,7 @@ p = Par();
         ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   ; # Reference level for interest rate
         ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              ; # Grid in levels
         # Labor productivity process
-        n_ϵ       = 15                                 ; # Size of ϵ_grid
+        n_ϵ       = 11                                 ; # Size of ϵ_grid
         MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     ; # Markov Process for ϵ
         ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   ; # Reference level for labor efficiency 
         ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              ; # Grid in levels
@@ -144,8 +144,8 @@ p = Par();
         H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         # Misc
-        method    = 1 # 1 for Kronecker and 2 for loops in expectation of PFI
-        read_flag = false # Boolean for reading results from file 
+        method    = 1     ; # 1 for Kronecker and 2 for loops in expectation of PFI
+        read_flag = false ; # Boolean for reading results from file 
     end
 
 M = Model();
