@@ -115,15 +115,15 @@ p = Par();
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
         n_cut_fine      = Grid_Inv(20000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
         # Interest rate process
-        n_ζ       = 7                                  # Size of ζ_grid
-        MP_ζ      = Tauchen86(p.ρ_ζ,p.σ_ζ,n_ζ,1.96)      # Markov Process for ζ
-        ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   # Reference level for interest rate
-        ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              # Grid in levels
+        n_ζ       = 7                                  ; # Size of ζ_grid
+        MP_ζ      = Tauchen86(p.ρ_ζ,p.σ_ζ,n_ζ,1.96)    ; # Markov Process for ζ
+        ζ_ref     = 1/sum(exp.(MP_ζ.grid).*MP_ζ.PDF)   ; # Reference level for interest rate
+        ζ_grid    = ζ_ref*exp.(MP_ζ.grid)              ; # Grid in levels
         # Labor productivity process
-        n_ϵ       = 15                                 # Size of ϵ_grid
-        MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     # Markov Process for ϵ
-        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   # Reference level for labor efficiency 
-        ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              # Grid in levels
+        n_ϵ       = 15                                 ; # Size of ϵ_grid
+        MP_ϵ      = Rouwenhorst95(p.ρ_ϵ,p.σ_ϵ,n_ϵ)     ; # Markov Process for ϵ
+        ϵ_ref     = 1/sum(exp.(MP_ϵ.grid).*MP_ϵ.PDF)   ; # Reference level for labor efficiency 
+        ϵ_grid    = ϵ_ref*exp.(MP_ϵ.grid)              ; # Grid in levels
         # State matrices
         a_mat     = repeat(a_grid,1,n_ϵ,n_ζ)
         ϵ_mat     = repeat(ϵ_grid',n_a,1,n_ζ)
