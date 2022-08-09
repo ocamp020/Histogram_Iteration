@@ -116,37 +116,38 @@
 ## Pareto Tail 
     # 10.000 observations 
     Pareto_a_10k = M_P.a_mat[1:10000,end]                      ; # Select first 10.000 observations 
-    Pareto_a_10k = sort( Pareto_a_10k[ Pareto_a_10k.>=1000 ] ) ; # Select and sort observations above $1M  
+    Pareto_a_10k = sort( Pareto_a_10k[ Pareto_a_10k.>=5000 ] ) ; # Select and sort observations above $1M  
     Pareto_p_10k = collect(length(Pareto_a_10k):-1:1)./length(Pareto_a_10k) ; # Counter CDF = 1- CDF
 
     # 50.000 observations 
     Pareto_a_50k = M_P.a_mat[1:50000,end]                      ; # Select first 50.000 observations 
-    Pareto_a_50k = sort( Pareto_a_50k[ Pareto_a_50k.>=1000 ] ) ; # Select and sort observations above $1M  
+    Pareto_a_50k = sort( Pareto_a_50k[ Pareto_a_50k.>=5000 ] ) ; # Select and sort observations above $1M  
     Pareto_p_50k = collect(length(Pareto_a_50k):-1:1)./length(Pareto_a_50k) ; # Counter CDF = 1- CDF
 
     # 100.000 observations 
     Pareto_a_100k = M_P.a_mat[1:100000,end]                       ; # Select first 100.000 observations 
-    Pareto_a_100k = sort( Pareto_a_100k[ Pareto_a_100k.>=1000 ] ) ; # Select and sort observations above $1M  
+    Pareto_a_100k = sort( Pareto_a_100k[ Pareto_a_100k.>=5000 ] ) ; # Select and sort observations above $1M  
     Pareto_p_100k = collect(length(Pareto_a_100k):-1:1)./length(Pareto_a_100k) ; # Counter CDF = 1- CDF
 
     # 500.000 observations 
     Pareto_a_500k = M_P.a_mat[1:500000,end]                       ; # Select first 500.000 observations 
-    Pareto_a_500k = sort( Pareto_a_500k[ Pareto_a_500k.>=1000 ] ) ; # Select and sort observations above $1M  
+    Pareto_a_500k = sort( Pareto_a_500k[ Pareto_a_500k.>=5000 ] ) ; # Select and sort observations above $1M  
     Pareto_p_500k = collect(length(Pareto_a_500k):-1:1)./length(Pareto_a_500k) ; # Counter CDF = 1- CDF
 
-## Figure with all pareto tails 
+## Figure with all pareto tails (above $5m)
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    plot( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    scatter!( log.(grid_1M[1:end-1]./1000)       , log.(CCDF_1M[1:end-1])       , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_10k[1:end-1]./1000)  , log.(Pareto_p_10k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_50k[1:end-1]./1000)  , log.(Pareto_p_50k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_100k[1:end-1]./1000) , log.(Pareto_p_100k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
-    scatter!( log.(Pareto_a_500k[1:end-1]./1000) , log.(Pareto_p_500k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    plot( log.(grid_1M[1:end-1]./5000) , P_coeff.*log.(grid_1M[1:end-1]./5000) , w=2, c=:orange , label=nothing )
+    scatter!( log.(grid_1M[1:end-1]./5000)       , log.(CCDF_1M[1:end-1])       , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_10k[1:end-1]./5000)  , log.(Pareto_p_10k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_50k[1:end-1]./5000)  , log.(Pareto_p_50k[1:end-1])  , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_100k[1:end-1]./5000) , log.(Pareto_p_100k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
+    scatter!( log.(Pareto_a_500k[1:end-1]./5000) , log.(Pareto_p_500k[1:end-1]) , marker=(:circle ,3)                 , markerstrokewidth=0 , label=nothing )   
     xlabel!("Log Assets",labelsize=18)
     title!("Distribution Tail",titlefont=14)
     ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
+    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/5000)*1)); 
+    xlims!(log(1),log(100000/5000)); 
+    xticks!(log.([1,2,4,8,16]),["\$5m","\$10m","\$20m","\$40m","\$80m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_Pareto_Simul.pdf")
 
 

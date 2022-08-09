@@ -15,15 +15,15 @@
 
 ## Change to your home directory 
 # # Sergio's Computer 
-#    cd()
-#    cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+   cd()
+   cd("./Dropbox/Research/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Emmanuel's Computer
     # cd()
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Laptop
     # cd("D:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/") # Desktop
     # cd("C:/Users/Emmanuel/Dropbox/RA_Sergio/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Baxter's Computer
-     cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
+    #  cd("D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 # Compute Canada Server
 #    cd("/scratch/robin370/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/")
 
@@ -106,14 +106,14 @@ p = Par();
         # Parameters
         p::Par = Par() # Model parameters in their own structure
         # Assets Grid
-        a_max::Float64  = 100000                     # Max node of a_grid
+        a_max::Float64  = 120000                     # Max node of a_grid
         θ_a::Float64    = 4.5                        # Curvature of a_grid
         θ_a_f::Float64  = 4.5                        # Curvature of a_grid_fine
         n_a::Int64      = 250                        # Size of a_grid
         n_a_fine::Int64 = 500                        # Size of fine grid for interpolation and distribution
         a_grid          = Make_Grid(n_a     ,θ_a  ,p.a_min,a_max,"Poly")  # a_grid for model solution
         a_grid_fine     = Make_Grid(n_a_fine,θ_a_f,p.a_min,a_max,"Poly")  # Fine grid for interpolation
-        n_cut_fine      = Grid_Inv(25000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
+        n_cut_fine      = Grid_Inv(20000,n_a_fine,θ_a_f,p.a_min,a_max) # Index just below 1000
         # Interest rate process
         n_ζ       = 7                                  # Size of ζ_grid
         MP_ζ      = Tauchen86(p.ρ_ζ,p.σ_ζ,n_ζ,1.96)      # Markov Process for ζ
@@ -144,7 +144,7 @@ p = Par();
         H_ω_lo    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         H_ω_hi    = Array{Float64}(undef,n_a_fine,n_ϵ,n_ζ,n_ϵ,n_ζ)  # Transition probabilities to future states (lower bound)
         # Misc
-        method = 1 # 1 for Kronecker and 2 for loops in expectation of PFI
+        method    = 1 # 1 for Kronecker and 2 for loops in expectation of PFI
         read_flag = false # Boolean for reading results from file 
     end
 
@@ -175,6 +175,7 @@ println("===============================================\n")
 
 # # Get moments from simulation
 # include("CalculateMoments_MonteCarlo.jl")
+
 
 
 # # Run Draft Moments for Graphs and Tables 

@@ -147,7 +147,7 @@ x_label_PT = ["\$5m","\$10m","\$20m","\$40m","\$80m"]; # ["\$1m","\$2m","\$4m","
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
         # title!("Distribution Tail - Histogram",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xlims!(log(1),log(100000/a_min_PT));  # xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
         xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Hist.pdf")
 
@@ -166,7 +166,7 @@ x_label_PT = ["\$5m","\$10m","\$20m","\$40m","\$80m"]; # ["\$1m","\$2m","\$4m","
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
         # title!("Distribution Tail - Simulation",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xlims!(log(1),log(100000/a_min_PT));  # xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
         xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul.pdf")
         # Add Histogram with 500 grid points 
@@ -202,7 +202,7 @@ x_label_PT = ["\$5m","\$10m","\$20m","\$40m","\$80m"]; # ["\$1m","\$2m","\$4m","
         xlabel!("Log Assets",labelsize=18)
         ylabel!("Log Counter CDF",labelsize=18)
         # title!("Distribution Tail - Simulation",titlefont=14)
-        xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
+        xlims!(log(1),log(100000/a_min_PT));  # xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/a_min_PT)*1)); 
         xticks!(log.(x_tick_PT),x_label_PT)
         savefig("./"*Fig_Folder*"/Draft_Pareto_Simul_$(Int(S_sample[i]/1000))k.pdf")
         end 

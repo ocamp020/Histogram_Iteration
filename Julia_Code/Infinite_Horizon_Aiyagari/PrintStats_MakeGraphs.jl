@@ -173,21 +173,22 @@ l = @layout [a  ; b  c]
     xticks!(log.([1,10,100,1000,10000,100000]),["\$1k","\$10k","\$100k","\$1m","\$10m","\$100m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_CDF.pdf")
 
-## Plot Pareto Tail (Above $1 Million)
-    ind     = M_Aiyagari.a_grid_fine.>=1000 ;
+## Plot Pareto Tail (Above $5 Million)
+    ind     = M_Aiyagari.a_grid_fine.>=5000 ;
     grid_1M = M_Aiyagari.a_grid_fine[ind]   ;
     Γ_a_1M  = Γ_a[ind]/sum(Γ_a[ind])        ; Γ_a_1M = Γ_a_1M/sum(Γ_a_1M) ; 
     CCDF_1M = 1 .- cumsum(Γ_a_1M)           ;
-    P_coeff = (log.(grid_1M[1:end-1]./1000)'*log.(grid_1M[1:end-1]./1000))\log.(grid_1M[1:end-1]./1000)'*log.(CCDF_1M[1:end-1])
+    P_coeff = (log.(grid_1M[1:end-1]./5000)'*log.(grid_1M[1:end-1]./5000))\log.(grid_1M[1:end-1]./5000)'*log.(CCDF_1M[1:end-1])
     gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out)
-    scatter( log.(grid_1M[1:end-1]./1000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
-    plot!( log.(grid_1M[1:end-1]./1000) , P_coeff.*log.(grid_1M[1:end-1]./1000) , w=2, c=:orange , label=nothing )
-    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./1000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
+    scatter( log.(grid_1M[1:end-1]./5000) , log.(CCDF_1M[1:end-1]) , marker=(:circle ,3,:cornflowerblue) , markerstrokewidth=0 , label=nothing )   
+    plot!( log.(grid_1M[1:end-1]./5000) , P_coeff.*log.(grid_1M[1:end-1]./5000) , w=2, c=:orange , label=nothing )
+    annotate!(-log(1.3)+mean(log.(grid_1M[1:end-1]./5000)),mean(log.(CCDF_1M[1:end-1])),"α=$(round(P_coeff,digits=2))",12)
     xlabel!("Log Assets",labelsize=18)
     title!("Distribution Tail",titlefont=14)
     ylims!( floor(log(CCDF_1M[end-1])/4)*4 , 0 )
-    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/1000)*1)); 
-    xticks!(log.([1,2,4,8,20,40,80]),["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"])
+    xlims!(log(1),log(ceil(M_Aiyagari.a_grid[end]/5000)*1)); 
+    xlims!(log(1),log(100000/5000)); 
+    xticks!(log.([1,2,4,8,16]),["\$5m","\$10m","\$20m","\$40m","\$80m"])
     savefig("./"*Fig_Folder*"/Distribution_Wealth_Pareto.pdf")
 
 ## Plot Lorenz Curve
