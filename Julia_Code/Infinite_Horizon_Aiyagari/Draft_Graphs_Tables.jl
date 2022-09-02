@@ -14,10 +14,10 @@ M_Panel = Model_Panel(N_Panel=1000000)   ;
     
 ###################################################################
 ## Load results from csv files 
-H_grid_size = [250 500 750 1000] ;  
+H_grid_size = [250 500 750 1000 5000] ;  
 n_H = length(H_grid_size) ;
 pct_list = [90;95;99;99.9;99.99] ;
-S_sample = 250000:250000:1000000 ; 
+S_sample = [collect(250000:250000:1000000)' 20000000] ; 
 N_S      = length(S_sample)      ;
 
 H_Γ_timed =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;

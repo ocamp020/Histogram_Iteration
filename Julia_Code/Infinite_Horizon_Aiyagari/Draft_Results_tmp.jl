@@ -5,6 +5,48 @@
 
 
 
+###################################################################
+## Load results from csv files 
+H_grid_size = [250 500 750 1000] ;  
+n_H         = length(H_grid_size) ;
+pct_list    = [90;95;99;99.9;99.99] ;
+S_sample    = 250000:250000:1000000 ; 
+N_S         = length(S_sample)      ;
+
+H_Γ_timed_tmp   =          readdlm(Hist_Folder*"/H_G_timed.csv", ',', Float64) ;
+H_Γ_bytes_tmp   =          readdlm(Hist_Folder*"/H_G_bytes.csv", ',', Float64) ;
+H_M_timed_tmp   = reshape( readdlm(Hist_Folder*"/H_M_timed.csv", ',', Float64) , n_H , 3 ) ;
+H_M_bytes_tmp   = reshape( readdlm(Hist_Folder*"/H_M_bytes.csv", ',', Float64) , n_H , 3 ) ;
+
+H_a_grid_tmp    = reshape( readdlm(Hist_Folder*"/H_a_grid.csv", ',', Float64) , H_grid_size[end] , n_H ) ;
+H_Γ_a_tmp       = reshape( readdlm(Hist_Folder*"/H_G_a.csv"   , ',', Float64) , H_grid_size[end] , n_H ) ;
+
+H_Wealth_Stats_tmp  = reshape( readdlm(Hist_Folder*"/H_Wealth_Stats.csv", ',', Float64) , n_H , 6 ) ;
+H_Wealth_Share_tmp  = reshape( readdlm(Hist_Folder*"/H_Wealth_Share.csv", ',', Float64) , n_H , 5 ) ;
+H_Pareto_Coeff_tmp  =          readdlm(Hist_Folder*"/H_Pareto_Coeff.csv", ',', Float64) ;    
+H_Decile_tmp        = reshape( readdlm(Hist_Folder*"/H_Decile.csv"   , ',', Float64) , 11 , 2  , n_H ) ;
+H_Decile_Tr_tmp     = reshape( readdlm(Hist_Folder*"/H_Decile_Tr.csv", ',', Float64) , 10 , 10 , n_H ) ;
+H_Cons_Corr_tmp     =          readdlm(Hist_Folder*"/H_Cons_Corr.csv", ',', Float64) ;
+H_A_Corr_tmp        =          readdlm(Hist_Folder*"/H_A_Corr.csv"   , ',', Float64) ;
+H_ϵ_Corr_tmp        =          readdlm(Hist_Folder*"/H_eps_Corr.csv" , ',', Float64) ;
+H_ζ_Corr_tmp        =          readdlm(Hist_Folder*"/H_z_Corr.csv"   , ',', Float64) ;
+
+S_M_timed_tmp = reshape( readdlm(MC_Folder*"/S_M_timed.csv", ',', Float64) , N_S , 4 ) ;
+S_M_bytes_tmp = reshape( readdlm(MC_Folder*"/S_M_bytes.csv", ',', Float64) , N_S , 4 ) ;
+S_Γ_timed_tmp =          readdlm(MC_Folder*"/S_G_timed.csv", ',', Float64)
+
+S_Wealth_Sample_tmp = reshape( readdlm(MC_Folder*"/S_Wealth_Sample.csv", ',', Float64) , N_S , 1000000 ) ;
+S_Wealth_Stats_tmp  = reshape( readdlm(MC_Folder*"/S_Wealth_Stats.csv" , ',', Float64) , N_S , 6 ) ;
+S_Wealth_Share_tmp  = reshape( readdlm(MC_Folder*"/S_Wealth_Share.csv" , ',', Float64) , N_S , 5 ) ;
+S_Pareto_Coeff_tmp  =          readdlm(MC_Folder*"/S_Pareto_Coeff.csv" , ',', Float64) ;    
+S_Decile_tmp        = reshape( readdlm(MC_Folder*"/S_Decile.csv"   , ',', Float64) , 11 , N_S ) ;
+S_Decile_Tr_tmp     = reshape( readdlm(MC_Folder*"/S_Decile_Tr.csv", ',', Float64) , 10 , 10 , N_S ) ;
+S_Cons_Corr_tmp     =          readdlm(MC_Folder*"/S_Cons_Corr.csv", ',', Float64) ;
+S_A_Corr_tmp        =          readdlm(MC_Folder*"/S_A_Corr.csv"   , ',', Float64) ;
+S_ϵ_Corr_tmp        =          readdlm(MC_Folder*"/S_eps_Corr.csv" , ',', Float64) ;
+S_ζ_Corr_tmp        =          readdlm(MC_Folder*"/S_z_Corr.csv"   , ',', Float64) ;
+
+
 # =
 ###################################################################
 ###################################################################
@@ -191,7 +233,7 @@ end
     H_ζ_Corr       = zeros(n_H)       ;
     N_Cons_Corr    = 2                ;
 
-    for i=1:n_H 
+    for i=n_H 
 
         println(" ")
         println("   Histogram with $(H_grid_size[i]) Grid Points")
@@ -225,6 +267,31 @@ end
         H_M_timed[i,3] = time ; H_M_bytes[i,3] = memory ;
 
     end 
+
+
+    ###################################################################
+    ## Load results from old csv files 
+
+    H_Γ_timed[1:n_H-1]   =   H_Γ_timed_tmp ;
+    H_Γ_bytes[1:n_H-1]   =   H_Γ_bytes_tmp ;
+    H_M_timed[1:n_H-1,:] =   H_M_timed_tmp ; 
+    H_M_bytes[1:n_H-1,:] =   H_M_bytes_tmp ; 
+
+    H_a_grid[1:H_grid_size[end-1],1_n_H-1]  = H_a_grid_tmp ; 
+    H_Γ_a[1:H_grid_size[end-1],1_n_H-1]     = H_Γ_a_tmp    ;
+
+    H_Wealth_Stats[1:n_H-1,:]  =  H_Wealth_Stats_tmp ; 
+    H_Wealth_Share[1:n_H-1,:]  =  H_Wealth_Share_tmp ; 
+    H_Pareto_Coeff[1:n_H-1]    =  H_Pareto_Coeff_tmp ;
+    H_Decile[:,:,1:n_H-1]      =  H_Decile_tmp ; 
+    H_Decile_Tr[:,:,1:n_H-1]   =  H_Decile_Tr_tmp ; 
+    H_Cons_Corr[1:n_H-1]       =  H_Cons_Corr_tmp ;
+    H_A_Corr[1:n_H-1]          =  H_A_Corr_tmp ;
+    H_ϵ_Corr[1:n_H-1]          =  H_ϵ_Corr_tmp ;
+    H_ζ_Corr[1:n_H-1]          =  H_ζ_Corr_tmp ;
+
+
+
 
     open(Hist_Folder*"/H_G_timed.csv", "w") do io
     writedlm(io, H_Γ_timed , ',')
@@ -333,7 +400,7 @@ end
     
     ## Moments 
 
-    for i=1:N_S
+    for i=N_S
 
         println(" ")
         println("Simulation with $(S_sample[i]) agents")
@@ -411,6 +478,24 @@ end
         end  
 
     end
+
+
+    ###################################################################
+    ## Load results from old csv files 
+    S_M_timed[1:N_S-1,:] = S_M_timed_tmp ; 
+    S_M_bytes[1:N_S-1,:] = S_M_bytes_tmp ; 
+    S_Γ_timed[1:N_S-1]   = S_Γ_timed_tmp ; 
+
+    S_Wealth_Sample[1:N_S-1,1:1000000] = S_Wealth_Sample_tmp ; 
+    S_Wealth_Stats[1:N_S-1,:] = S_Wealth_Stats_tmp ; 
+    S_Wealth_Share[1:N_S-1,:] = S_Wealth_Share_tmp ; 
+    S_Pareto_Coeff[1:N_S-1]   = S_Pareto_Coeff_tmp ; 
+    S_Decile[:,1:N_S-1]       = S_Decile_tmp ; 
+    S_Decile_Tr[:,:,1:N_S-1]  = S_Decile_Tr_tmp ; 
+    S_Cons_Corr[1:N_S-1]      = S_Cons_Corr_tmp ; 
+    S_A_Corr[1:N_S-1]         = S_A_Corr_tmp ; 
+    S_ϵ_Corr[1:N_S-1]         = S_ϵ_Corr_tmp ; 
+    S_ζ_Corr[1:N_S-1]         = S_ζ_Corr_tmp ; 
 
     open(MC_Folder*"/S_M_timed.csv", "w") do io
     writedlm(io, S_M_timed , ',')
