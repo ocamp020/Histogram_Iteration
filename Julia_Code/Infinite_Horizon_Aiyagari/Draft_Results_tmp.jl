@@ -277,8 +277,8 @@ end
     H_M_timed[1:n_H-1,:] =   H_M_timed_tmp ; 
     H_M_bytes[1:n_H-1,:] =   H_M_bytes_tmp ; 
 
-    H_a_grid[1:H_grid_size[end-1],1_n_H-1]  = H_a_grid_tmp ; 
-    H_Γ_a[1:H_grid_size[end-1],1_n_H-1]     = H_Γ_a_tmp    ;
+    H_a_grid[1:H_grid_size[end-1],1:n_H-1]  = H_a_grid_tmp ; 
+    H_Γ_a[1:H_grid_size[end-1],1:n_H-1]     = H_Γ_a_tmp    ;
 
     H_Wealth_Stats[1:n_H-1,:]  =  H_Wealth_Stats_tmp ; 
     H_Wealth_Share[1:n_H-1,:]  =  H_Wealth_Share_tmp ; 
