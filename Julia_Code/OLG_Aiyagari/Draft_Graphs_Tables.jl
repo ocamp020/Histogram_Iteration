@@ -2,7 +2,8 @@
 ###################################################################
 ## Graphs and Tables 
     
-color_vec_H = range(colorant"cornflowerblue", stop=colorant"orange", length=4) ;
+color_vec_H = [:lightskyblue1 , :cornflowerblue , :black , :royalblue4] ;# range(colorant"cornflowerblue", stop=colorant"orange", length=4) ;
+
 
 ###################################################################
 ## Load results from csv files 
@@ -35,19 +36,24 @@ color_vec_H = range(colorant"cornflowerblue", stop=colorant"orange", length=4) ;
 ###################################################################
 ## Wealth Profiles Figures 
     y_tick_pr  = [0,250,500,750,1000,1250,1500,1750] ;
-    y_label_pr = ["0","\$0.25m,","\$0.50m","\$0.75m","\$1.00m","\$1.25m","\$1.50m","\$1.75m"]; # ["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"]
+    y_label_pr = ["0","\$0.25m","\$0.50m","\$0.75m","\$1.00m","\$1.25m","\$1.50m","\$1.75m"]; # ["\$1m","\$2m","\$4m","\$8m","\$20m","\$40m","\$80m"]
+    S_label    = ["100k","250k","350k","500k"] ;
     for i=1:N_S 
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing)
-    scatter([0],[0],marker=(:rect,15,:gray70),label="Histogram, N=500")
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing,legendfontsize=9)
+    scatter( [0],[0],marker=(:square ,15,:gray70),label="Ave.  Wealth")
+    scatter!([0],[0],marker=(:circle ,15,:gray70),label="p99   Wealth")
+    scatter!([0],[0],marker=(:diamond,15,:gray70),label="p99.9 Wealth")
+    scatter!([0],[0],marker=(:rect,15,:cornflowerblue),label="Histogram, N=500")
+    scatter!([0],[0],marker=(:rect,15,:orangered3    ),label="Monte-Carlo, N="*S_label[i])
     # Average 
-    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,2] , marker=(:square , 2 ,:gray70        ),label=nothing)
-    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,i] , marker=(:square , 2 ,:cornflowerblue),label="Ave. Wealth")
+    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,2] , marker=(:square , 3 ,:cornflowerblue),label=nothing)
+    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,i] , marker=(:square , 3 ,:orangered3    ),label=nothing)
     # 90th percentile 
-    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end, 3 ,2] , marker=(:circle , 3 ,:gray70        ),label=nothing)
-    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end, 3 ,i] , marker=(:circle , 3 ,:cornflowerblue),label="p99 Wealth")
+    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end, 3 ,2] , marker=(:circle , 4 ,:cornflowerblue),label=nothing)
+    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end, 3 ,i] , marker=(:circle , 4 ,:orangered3    ),label=nothing)
     # 99th percentile 
-    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end, 4 ,2] , marker=(:diamond, 3 ,:gray70        ),label=nothing)
-    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end, 4 ,i] , marker=(:diamond, 3 ,:cornflowerblue),label="p99.9 Wealth")
+    scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end, 4 ,2] , marker=(:diamond, 4 ,:cornflowerblue),label=nothing)
+    scatter!(  45:(19+p.Max_Age) , S_Wealth_Profile_NB[age_0_Wealth_Profile:end, 4 ,i] , marker=(:diamond, 4 ,:orangered3    ),label=nothing)
     # Formatting 
     ylims!(0,ceil(maximum(S_Wealth_Profile_NB[:,4,1]/250))*250)
     xlabel!("Age",labelsize=18); 
@@ -57,14 +63,14 @@ color_vec_H = range(colorant"cornflowerblue", stop=colorant"orange", length=4) ;
     end 
 
     # Comparing Histograms 
-    alpha_vec = range(0.95,0.45,length=4) ;
-    ms_vec    = range(3.25,2.75,length=4) ;
-    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing)
-    scatter( [0],[0],marker=(:square ,15,:gray27),label="Ave.  Wealth")
-    scatter!([0],[0],marker=(:circle ,15,:gray27),label="p99   Wealth")
-    scatter!([0],[0],marker=(:diamond,15,:gray27),label="p99.9 Wealth")
-    for i=1:N_S 
-        scatter!([0],[0],marker=(:rect,15,color_vec_H[i]),label="N = $(H_grid_size[i])")
+    alpha_vec = range(0.95,0.85,length=4) ;
+    ms_vec    = range(4.25,3.75,length=4) ;
+    gr(ytickfontsize=12,xtickfontsize=12,xtick_direction=:out,foreground_color_legend = nothing,background_color_legend = nothing,legendfontsize=9)
+    scatter( [0],[0],marker=(:square ,15,:gray70),label="Ave.  Wealth")
+    scatter!([0],[0],marker=(:circle ,15,:gray70),label="p99   Wealth")
+    scatter!([0],[0],marker=(:diamond,15,:gray70),label="p99.9 Wealth")
+    for i=[1,2,4] 
+        scatter!([0],[0],marker=(:rect,15,color_vec_H[i]),label="Histogram, N=$(H_grid_size[i])")
         # Average 
         scatter!(  45:(19+p.Max_Age) , H_Wealth_Profile_NB[age_0_Wealth_Profile:end,end,i] , marker=(:square , ms_vec[i] , alpha_vec[i] ,color_vec_H[i]),label=nothing)
         # 90th percentile 
