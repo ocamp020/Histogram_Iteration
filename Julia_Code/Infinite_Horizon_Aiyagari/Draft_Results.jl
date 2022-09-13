@@ -5,7 +5,7 @@
 
 
 
-# =
+#=
 ###################################################################
 ###################################################################
 ## Histogram 
@@ -166,7 +166,7 @@ end
 
 ###################################################################
 ## Run Histogram Simulation for Different Grids 
-    H_grid_size = [250 500 750 1000 5000] ; 
+    H_grid_size = [250 250 500 1000 5000] ; 
     n_H = length(H_grid_size) ;
     H_Γ_timed = zeros(n_H)    ; 
     H_Γ_bytes = zeros(n_H)    ;
@@ -287,8 +287,10 @@ end
     end;
     
                    
-# =#
+=#
 
+
+#=
 ###################################################################
 ###################################################################
 ## Simulation 
@@ -304,14 +306,14 @@ end
     # M_Panel = Model_Panel(N_Panel=1000000)   ; 
 
     # Set up discrete observations 
-    S_sample = [collect(250000:250000:1000000)' 20000000]    ; 
+    S_sample = [50000 250000 500000 1000000 10000000]    ; 
     N_S      = length(S_sample)         ;
     pct_list = [90;95;99;99.9;99.99]    ;  
 
     S_M_timed      = zeros(N_S,4)       ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
     S_M_bytes      = zeros(N_S,4)       ; # 1-> Simulation 2->Top Shares 3->Decile Transition 4->Auto-correlation
     
-    S_Wealth_Sample= zeros(N_S,1000000) ;
+    S_Wealth_Sample= zeros(N_S,S_sample[N_S]) ;
     S_Wealth_Stats = zeros(N_S,6)       ; 
     S_Wealth_Share = zeros(N_S,5)       ; 
     S_Pareto_Coeff = zeros(N_S  )       ;  
@@ -330,10 +332,11 @@ end
     # # Simulate Panel 
     # M_Panel = Simulate_Panel_Dynasty(M_Simul,M_Panel) ; 
 
-    
+
+=#    
     ## Moments 
 
-    for i=1:N_S
+    for i=N_S # 1:N_S
 
         println(" ")
         println("Simulation with $(S_sample[i]) agents")
@@ -429,9 +432,16 @@ end
     writedlm(io, S_Γ_bytes , ',')
     end;
 
+
+    S_Wealth_1 = S_Wealth_Sample[1:N_S-1,1:S_sample[N_S-1]] ; 
+    S_Wealth_2 = S_Wealth_Sample[N_S,:] ; 
     open(MC_Folder*"/S_Wealth_Sample.csv", "w") do io
-    writedlm(io, S_Wealth_Sample , ',')
-    end;
+        writedlm(io, S_Wealth_1 , ',')
+        end;
+    open(MC_Folder*"/S_Wealth_Sample_Large.csv", "w") do io
+        writedlm(io, round.(S_Wealth_2; digits=3) , ',')
+        end;
+
 
     open(MC_Folder*"/S_Wealth_Stats.csv", "w") do io
     writedlm(io, S_Wealth_Stats , ',')

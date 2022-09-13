@@ -67,7 +67,7 @@ println("Autocorr of Consumption: 1st quintile")
     sd_c_q = sqrt( sum( ((M_Aiyagari.G_c_fine[1:deciles_a[3],:,:].-av_c_q).^2).*Γ_q[1:deciles_a[3],:,:] ) ) ;
     # Future average and standard deviation conditional on first quintile
         # Iterate distribution 
-        Γ_qN = Histogram_Iteration(M_Aiyagari,n_H,Γ_q) ;
+        Γ_qN = Histogram_Iteration(M_Aiyagari,n_H,copy(Γ_q)) ;
         # Obtain consumption
         av_c_q_N = sum( M_Aiyagari.G_c_fine.*Γ_qN  )                                   ;
         sd_c_q_N = sqrt( sum( ((M_Aiyagari.G_c_fine.-av_c_q_N).^2).*Γ_qN  ) ) ; 
