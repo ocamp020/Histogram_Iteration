@@ -34,6 +34,7 @@
 # Load packages
 using SparseArrays
 using Plots
+using LaTeXStrings
 using Interpolations # Pkg.add("Interpolations") # https://github.com/JuliaMath/Interpolations.jl
 using Dierckx # Pkg.add("Dierckx") # https://github.com/kbarbary/Dierckx.jl
 using ForwardDiff # Pkg.add("ForwardDiff") # https://github.com/JuliaDiff/ForwardDiff.jl
@@ -160,11 +161,11 @@ include("Functions_ModelSolution.jl")
 # Load functions in Functions_Montecarlo (Simulate panels of individual agents)
 include("Functions_MonteCarlo.jl")
 
-stop
+
 # Execute model solution 
 println("\n===============================================\n Solving Aiyagari with EGM-Histogram(loop)")
     
-    @time M_Aiyagari = Aiyagari_Equilibrium(Model(read_flag=true));
+    @time M_Aiyagari = Aiyagari_Equilibrium(Model(read_flag=false));
 
 println("===============================================\n")
 
@@ -182,7 +183,7 @@ println("===============================================\n")
 
 
 # # Run Draft Moments for Graphs and Tables 
-# include("Draft_Results.jl")
+include("Draft_Results.jl")
 
 # Make Draft Graphs and Tables
 include("Draft_Graphs_Tables.jl")
