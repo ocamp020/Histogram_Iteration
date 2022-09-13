@@ -1,14 +1,14 @@
 ###################################################################
 ###################################################################
 ###################################################################
-## Simulate to get restuls for draft's graphs and tables
+## Produce Results for Draft 
+## Results are converted into tables and figures in Draft_Graphs_Tables
 
 
 
-#=
 ###################################################################
 ###################################################################
-## Histogram 
+## Histogram Iteration Method
 
 
 ###################################################################
@@ -287,13 +287,11 @@ end
     end;
     
                    
-=#
 
 
-#=
 ###################################################################
 ###################################################################
-## Simulation 
+## Monte Carlo Simulation 
 
 
 
@@ -333,10 +331,10 @@ end
     # M_Panel = Simulate_Panel_Dynasty(M_Simul,M_Panel) ; 
 
 
-=#    
+  
     ## Moments 
 
-    for i=N_S # 1:N_S
+    for i=1:N_S
 
         println(" ")
         println("Simulation with $(S_sample[i]) agents")

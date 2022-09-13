@@ -162,24 +162,13 @@ println("\n===============================================\n Solving Aiyagari wi
     
     @time M_Aiyagari = Aiyagari_Equilibrium(Model(method=1,read_flag=false));
 
+    ## Optional: Get stats and graphs for the solution of the model 
+    # include("CalculateMoments_Solution.jl")
+
 println("===============================================\n")
-
- 
-# # Get stats and graphs for the solution of the model 
-# include("PrintStats_MakeGraphs.jl")
-
-
-# # Get moments from histogram method
-# include("CalculateMoments_Histogram.jl")
-
-
-# # Get moments from simulation
-# include("CalculateMoments_MonteCarlo.jl")
-
 
 
 # # Run Draft Moments for Graphs and Tables 
-# include("Draft_Results.jl")
 include("Draft_Results.jl")
 
 # Make Draft Graphs and Tables
