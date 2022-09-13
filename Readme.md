@@ -6,9 +6,14 @@
 #### **Contact:** socampod@uwo.ca; brobin63@uwo.ca
 
 <br/>
+<br/>
+
+---
+### **Overview**
 This repository contains code that implements the histogram iteration method for computing longidudinal moments in heterogeneous agent models.<br/>
-The paper describing the method is located in the main folder.<br/>
-The method is implemented in Julia and Matlab.<br/>
+The paper describing the method is located in the main folder or by [clicking here](https://github.com/ocamp020/Histogram_Iteration/blob/master/Histogram_Iteration_Method.pdf).<br/>
+A short description of the method is presented below.<br/>
+The method is implemented in Julia (v1.7).<br/>
 <br/>
 <br/>
 
@@ -156,4 +161,23 @@ Once the future distributions are obtained, the moments can be computed directly
   https://gist.github.com/a-rodin/fef3f543412d6e1ec5b6cf55bf197d7b
 -->
 
+<br/>
+<br/>
+
+---
+### **Models and Code**
+
+We implement the method in two versions of the baseline heterogeneous agent model. 
+The first has infinitely lived agents, and the second one an overlapping generations demographic structure. 
+We provide separate code for each model in the *Julia_Code* folder. 
+
+
+The code is managed from [Main_Solve_InfHor_Model.jl](https://github.com/ocamp020/Histogram_Iteration/blob/master/Julia_Code/Infinite_Horizon_Aiyagari/Main_Solve_InfHor_Model.jl) and [Main_Solve_OLG_Model.jl](https://github.com/ocamp020/Histogram_Iteration/blob/master/Julia_Code/OLG_Aiyagari/Main_Solve_OLG_Model.jl).
+All other files are called by these Main files.
+The parameter and model structures use the [Parameters Package](https://github.com/mauro3/Parameters.jl).
+Other packages are indicated in the Main files. 
+
+
+The code calculates moments of the wealth distribution. 
+![alt text](https://github.com/ocamp020/Histogram_Iteration/blob/master/Julia_Code/Infinite_Horizon_Aiyagari/Figures/Draft_Pareto_Simul_500k.pdf)
 
