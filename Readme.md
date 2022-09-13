@@ -176,8 +176,3 @@ The code is managed from [Main_Solve_InfHor_Model.jl](https://github.com/ocamp02
 All other files are called by these Main files.
 The parameter and model structures use the [Parameters Package](https://github.com/mauro3/Parameters.jl).
 Other packages are indicated in the Main files. 
-
-
-The code calculates moments of the wealth distribution. 
-![alt text](https://github.com/ocamp020/Histogram_Iteration/blob/master/Julia_Code/Infinite_Horizon_Aiyagari/Figures/Draft_Pareto_Simul_500k.pdf)
-
