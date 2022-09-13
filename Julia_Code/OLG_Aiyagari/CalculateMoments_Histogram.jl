@@ -70,7 +70,7 @@ println("Autocorr of Wealth: ages 35-65")
         Γ_0 = zeros(M_Aiyagari.n_a_fine,M_Aiyagari.n_ϵ,M_Aiyagari.p.Max_Age) ; 
         Γ_0[i_a,i_ϵ,age_0] = 1 ; 
         # Iterate distribution
-        Γ_N = Histogram_Iteration(M_Aiyagari_C,n_H,Γ_0) ;
+        Γ_N = Histogram_Iteration(M_Aiyagari_C,n_H,copy(Γ_0)) ;
         # Fill in integrand (a_0 - av_a)*(a_n - av_a)*Γ_N
         cov_a_3565[i_a,i_ϵ] = sum( ( a_grid_vec[i_a].-av_a_0 )*( a_grid_vec.-av_a_N ).*sum(Γ_N,dims=(2,3))/sum(Γ_N) ) ;
     end 
