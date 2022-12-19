@@ -13,14 +13,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Generate structure for the panel using Parameters module
 
-M_P_structure = struct('N_Panel', 500000 , 'T_Panel', 10, 'T_Simul', 1000, 'N_Min', 1000, 'Simul_tol', 1e-2, 'rng_seed', 3489398); % True definition.
-
-M_P_structure.a_mat    = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
-M_P_structure.c_mat    =  zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
-M_P_structure.eps_mat  = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
-M_P_structure.zeta_mat = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
-M_P_structure.t_vec    = zeros([M_P_structure.N_Panel,1]);
+%M_P_structure = struct('N_Panel', 500000 , 'T_Panel', 10, 'T_Simul', 1000, 'N_Min', 1000, 'Simul_tol', 1e-2, 'rng_seed', 3489398); % True definition.
+%M_P_structure.a_mat    = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
+%M_P_structure.c_mat    =  zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
+%M_P_structure.eps_mat  = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
+%M_P_structure.zeta_mat = zeros([M_P_structure.N_Panel, M_P_structure.T_Panel]);
+%M_P_structure.t_vec    = zeros([M_P_structure.N_Panel,1]);
     
+M_P_structure = Functions_MonteCarlo.PanelStructure(500000 ,10,1000, 1000, 1e-2,3489398); % True definition.
+
 M_P = Functions_MonteCarlo.Simulate_Panel(M_Aiyagari, M_P_structure, 1) ; 
 % Value for Seed_Flag==1 to be true, Seed_Flag==0 to be false.
 
@@ -84,14 +85,50 @@ end
 
 %% Figures: Top percentiles 1% and 0.1%     
 
+f=figure();
+plot( fig_sample/1000 , pct_S(3,:),'-o' ,'color', [0 0.4470 0.7410] );
+yline(mean(Top_shares(3,2)), 'color', [0.8500 0.3250 0.0980])
+ylim([floor(min(pct_S(3,:)/500))*500 ceil(max(pct_S(4,:)/500))*500])
+title('99th and 99.9th percentiles','FontSize', 18)
+xlabel('Sample Size: Thousands','FontSize',14)
+a = get(gca,'XTickLabel');  
+set(gca,'XTickLabel',a,'fontsize',12,'FontWeight','bold')
+set(gca,'XTickLabelMode','auto')
+hold on
+plot( fig_sample/1000 , pct_S(4,:), '-o','color', [0 0.4470 0.7410] );
+yline(mean(Top_shares(4,2)), 'color', [0.8500 0.3250 0.0980])
+hold off
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Top_pct_Simul.pdf')
 
-% TBD
 
 
-%% Figures: Top percentiles 1% and 0.1%     
+%% Figures: Top Shares 1% and 0.1%      
+
+f=figure();
+plot( fig_sample/1000 , Top_Shares_S(3,:),'-o' ,'color', [0 0.4470 0.7410]);
+yline(mean(Top_Shares_S(3,3)), 'color', [0.8500 0.3250 0.0980])
+ylim([0 ceil(max(Top_Shares_S(3,:)/5))*5])
+xlim([1, M_P.N_Panel/1000])
+hold on
+plot( fig_sample/1000 , Top_Shares_S(4,:),'-o' ,'color', [0 0.4470 0.7410]);
+yline(mean(Top_Shares_S(4,3)), 'color', [0.8500 0.3250 0.0980])
+hold off
+title('Top 1% and 0.1% Shares','FontSize', 18)
+xlabel('Sample Size: Thousands','FontSize',14)
+a = get(gca,'XTickLabel');  
+set(gca,'XTickLabel',a,'fontsize',12,'FontWeight','bold')
+set(gca,'XTickLabelMode','auto')
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Top_Share_Simul.pdf')
 
 
-% TBD
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,8 +153,26 @@ end
 
 
 %% Figure with Lorenz Curve for 10k, 50k, 100k    
-    
-
+f=figure();
+plot(1:100, 1:100, 'color', [.7 .7 .7])
+title('Lorenz curve','FontSize', 18)
+ylim([0 100])
+xlim([0 100])
+hold on
+plot(100*CDF_a, 100*Lorenz_a,'MarkerFaceColor', [0 0.4470 0.7410] )
+plot(1:100, Lorenz_S(:,1))
+plot(1:100, Lorenz_S(:,2))
+plot(1:100, Lorenz_S(:,3))
+plot(1:100, Lorenz_S(:,4))
+hold off
+a = get(gca,'XTickLabel');  
+set(gca,'XTickLabel',a,'fontsize',12,'FontWeight','bold')
+set(gca,'XTickLabelMode','auto')
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Distribution_Wealth_Lorenz_Simul.pdf')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,6 +203,27 @@ end
     
 
     % Figure with all Pareto tails (above $5m)
+f=figure();
+plot( log(grid_1M(1:end-1)/5000), P_coeff*log(grid_1M(1:end-1)/5000), 'color', [0.8500 0.3250 0.0980])
+xlim([log(1) log(ceil(M_Aiyagari.a_grid(end)/5000)*1)]);
+%xlim([log(1) log(100000/5000)])
+xticks(log([1 2 4 8 16]))
+xticklabels({'$5m', '$10m', '$20m', '$40m', '$80m'} )  
+hold on
+scatter(log(grid_1M(1:end-1)/5000)  , log(CCDF_1M(1:end-1)) , 10,'filled', 'MarkerFaceColor', [0 0.4470 0.7410])
+scatter(log(Pareto_a_10k(1:end-1)/5000)  , log(Pareto_p_10k(1:end-1)) , 10,'filled')
+scatter(log(Pareto_a_50k(1:end-1)/5000)  , log(Pareto_p_50k(1:end-1)) , 10,'filled')
+scatter(log(Pareto_a_100k(1:end-1)/5000)  , log(Pareto_p_100k(1:end-1)) , 10,'filled')
+scatter(log(Pareto_a_500k(1:end-1)/5000)  , log(Pareto_p_500k(1:end-1)) , 10,'filled')
+hold off
+title('Distribution Tail','FontSize', 18)
+xlabel('Log Assets','FontSize',14)
+ylim([ floor(log(CCDF_1M(end-1))/4)*4  0  ])
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Distribution_Wealth_Pareto_Simul.pdf')
 
 
 
@@ -178,10 +254,33 @@ end
 
 
 % Figure with transitions of bottom decile
+f=figure();
+plot( fig_sample/1000, reshape(Tr_deciles_a_S(1,:,:),10,101))
+yline(100*(Tr_deciles_a(1,:)), 'color', [0.8500 0.3250 0.0980])
+ylim([0 ceil(max(max(reshape(Tr_deciles_a_S(1,:,:),10,101))))])
+xlim([1 M_P.N_Panel/1000])
+title('1st Decile Transitions','FontSize', 18)
+xlabel('Sample Size: Thousands','FontSize',14)
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Tr_Decile_1_Simul.pdf')
 
 
 % Figure with transitions of top decile
-
+f=figure();
+plot( fig_sample/1000, reshape(Tr_deciles_a_S(end,:,:),10,101))
+yline(100*(Tr_deciles_a(end,:)), 'color', [0.8500 0.3250 0.0980])
+ylim([0 ceil(max(max(reshape(Tr_deciles_a_S(end,:,:),10,101))))])
+xlim([1 M_P.N_Panel/1000])
+title('1st Decile Transitions','FontSize', 18)
+xlabel('Sample Size: Thousands','FontSize',14)
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Tr_Decile_10_Simul.pdf')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,4 +311,18 @@ end
 
 
 % Figure
+f=figure();
+plot(fig_sample/1000, cor_c_q_S)
+yline(mean(cor_c_q_S), 'color', [0.8500 0.3250 0.0980])
+ylim([0 1])
+xlim([1 M_P.N_Panel/1000])
+title('Auto-Correlation of Consumption','FontSize', 18)
+xlabel('Sample Size: Thousands','FontSize',14)
+f.Units = 'centimeters';
+f.PaperUnits = 'centimeters';
+f.PaperSize = f.Position(3:4);
+f.PaperSize = f.Position(3:4)+0.2; % Add 0.1 cm of margin in each direction
+saveas(gcf,'Fig_Folder/Cons_Corr_Simul.pdf')
+
+
 

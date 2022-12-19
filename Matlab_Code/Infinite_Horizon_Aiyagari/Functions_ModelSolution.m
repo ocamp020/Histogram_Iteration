@@ -22,6 +22,142 @@ classdef Functions_ModelSolution
         end
         
 % ------------------------------------------------------------------------------------------- 
+% ------------------------------------------------------------------------------------------- 
+% -------------------------------------------------------------------------------------------
+
+    % Parameter structure
+    function par_structure = Parameters(beta,sigma, ...
+            rho_eps,sigma_eps,rho_zeta,sigma_zeta, ...
+            r,w,a_min,max_iter,dist_tol,dist_tol_Delta, ...
+            eta, Hist_max_iter, Hist_tol,Hist_eta, c_min)
+
+            par_structure = struct('beta',beta, 'sigma',sigma, 'rho_eps', rho_eps, ...
+                'sigma_eps',sigma_eps,'rho_zeta',rho_zeta, 'sigma_zeta',sigma_zeta,...
+    'r',r, 'w',w,...
+    'a_min',a_min,...
+    'max_iter',max_iter,...
+    'dist_tol',dist_tol,'dist_tol_Delta',dist_tol_Delta,'eta',eta,...
+    'Hist_max_iter',Hist_max_iter,'Hist_tol',Hist_tol,'Hist_eta',Hist_eta,...
+    'c_min',c_min); 
+            return
+    end % End of function Parameters
+
+
+    function updated_par_structure = par2modify(parameter_structure, parameter_requested, parameter_new_value)
+        % This function checks if the requested parameter is in the
+        % parameter structure. If so, requests the function 'Parameters' for 
+        % an updated parameter structure. If the requested parameter is not
+        % there, displays an error sign.
+
+        % This is what I though to use to overcome the @kw macro/structure
+        % in Julia
+
+        % The requested parameter should be written as: 'parameter_requested' .
+        
+        old = parameter_structure;
+        if any(strcmp(fieldnames(parameter_structure),parameter_requested))
+            old.(sprintf(parameter_requested)) = parameter_new_value;
+            values = struct2cell(old);
+            %fields_inner
+            updated_par_structure = Functions_ModelSolution.Parameters(values{:});
+        else
+            error('Parameter not in the structure')
+        end
+        clear old
+        return
+        
+    end % End of function par2modify
+
+        
+% ------------------------------------------------------------------------------------------- 
+% -------------------------------------------------------------------------------------------
+% -------------------------------------------------------------------------------------------
+
+
+    % Model structure
+
+    function model_structure = ModelStructure(par_structure, a_max, theta_a, theta_a_f, n_a ,  n_a_fine, n_zeta, n_eps, method, read_flag)
+        % Inputs: parameter structure plus 9 scalar inputs that allow the function to create the
+        % model structure
+        
+        % method: 1 for Kronecker and 2 for loops in expectation of PFI 
+            % read_flag: Boolean for reading results from file. 
+            model_structure = struct('p', par_structure, ...
+                'a_max', a_max, 'theta_a', theta_a, ...
+                'theta_a_f', theta_a_f, 'n_a',n_a, 'n_a_fine',n_a_fine, ...
+                'n_zeta',n_zeta, 'n_eps', n_eps, ...
+                'method', method , 'read_flag', read_flag);
+            par = model_structure.p;
+            % model_structure complement
+                model_structure.a_grid = VFI_Toolbox.Make_Grid(model_structure.n_a, model_structure.theta_a, par.a_min, model_structure.a_max,"Poly");
+                model_structure.a_grid_fine = VFI_Toolbox.Make_Grid(model_structure.n_a_fine, model_structure.theta_a_f, par.a_min, model_structure.a_max,"Poly");
+                model_structure.n_cut_fine = double(VFI_Toolbox.Grid_Inv(20000,model_structure.n_a_fine,model_structure.theta_a_f, par.a_min, model_structure.a_max,"Poly"));
+                % Interest rate process
+                model_structure.MP_zeta = struct('N',{}, 'grid',{}, 'Pi',{}, 'PDF',{},'CDF',{});
+                [model_structure.MP_zeta(1).N,model_structure.MP_zeta(1).grid,model_structure.MP_zeta(1).Pi,model_structure.MP_zeta(1).PDF,model_structure.MP_zeta(1).CDF] = VFI_Toolbox.Tauchen86(par.rho_zeta,par.sigma_zeta,model_structure.n_zeta,1.96);
+                model_structure.zeta_ref = 1/dot(exp(model_structure.MP_zeta(1).grid),model_structure.MP_zeta(1).PDF);
+                model_structure.zeta_grid = model_structure.zeta_ref.*exp(model_structure.MP_zeta(1).grid);
+                % Labor productivity process
+                model_structure.MP_eps = struct('N',{}, 'grid',{}, 'Pi',{}, 'PDF',{},'CDF',{});
+                [model_structure.MP_eps(1).N,model_structure.MP_eps(1).grid,model_structure.MP_eps(1).Pi,model_structure.MP_eps(1).PDF,model_structure.MP_eps(1).CDF] = VFI_Toolbox.Rouwenhorst95(par.rho_eps,par.sigma_eps,model_structure.n_eps);
+                model_structure.eps_ref = 1/dot(exp(model_structure.MP_eps(1).grid),model_structure.MP_eps(1).PDF);
+                model_structure.eps_grid = model_structure.eps_ref.*exp(model_structure.MP_eps(1).grid);
+                % State matrices
+                model_structure.a_mat = repmat(transpose(model_structure.a_grid),[1,model_structure.n_eps,model_structure.n_zeta]);
+                model_structure.eps_mat = repmat(model_structure.eps_grid,[model_structure.n_a,1,model_structure.n_zeta]);
+                model_structure.zeta_mat = repmat(reshape(model_structure.zeta_grid,[1,1,model_structure.n_zeta]),model_structure.n_a, model_structure.n_eps,1);
+                model_structure.a_mat_fine =  repmat(transpose(model_structure.a_grid_fine),[1,model_structure.n_eps,model_structure.n_zeta]);
+                model_structure.eps_mat_fine = repmat(model_structure.eps_grid,[model_structure.n_a_fine,1,model_structure.n_zeta]);
+                model_structure.zeta_mat_fine = repmat(reshape(model_structure.zeta_grid,[1,1,model_structure.n_zeta]),model_structure.n_a_fine, model_structure.n_eps,1);
+                % Value and policy functions 
+                model_structure.V = zeros([model_structure.n_a, model_structure.n_eps, model_structure.n_zeta]); % Value function
+                model_structure.G_ap = zeros([model_structure.n_a, model_structure.n_eps, model_structure.n_zeta]); % Policy Function for Capital/Assets
+                model_structure.G_c = zeros([model_structure.n_a, model_structure.n_eps, model_structure.n_zeta]); % Policy Function for Consumption
+                model_structure.V_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta]); % Value function
+                model_structure.G_ap_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta]); % Policy Function for Capital/Assets
+                model_structure.G_c_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta]); % Policy Function for Consumption
+                % Distribution
+                model_structure.Gamma = (1/(model_structure.n_cut_fine*model_structure.n_eps*model_structure.n_zeta)).*cat(1,ones(model_structure.n_cut_fine,model_structure.n_eps,model_structure.n_zeta), zeros(model_structure.n_a_fine-model_structure.n_cut_fine, model_structure.n_eps, model_structure.n_zeta));
+                model_structure.H_ind = rand(model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta); % Index for discretization of savings choice  
+                model_structure.H_omega_lo = rand(model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta, model_structure.n_eps, model_structure.n_zeta); % Index for discretization of savings choice  
+                model_structure.H_omega_hi = rand(model_structure.n_a_fine, model_structure.n_eps, model_structure.n_zeta, model_structure.n_eps, model_structure.n_zeta);
+
+            return
+
+
+    end % End of ModelStructure
+
+      % ***************************************************
+   
+ function updated_model_structure = model2modify(model_structure, parameter_requested, parameter_new_value)
+        % This function checks if the requested parameter is in the
+        % model structure. If so, requests the function 'ModelStructure' for 
+        % an updated model structure. If the requested parameter is not
+        % there, displays an error sign.
+
+        % This is what I though to use to overcome the @kw macro/structure
+        % in Julia
+
+        % The requested parameter should be written as: 'parameter_requested' .
+        
+        old = model_structure;
+        if any(strcmp(fieldnames(model_structure),parameter_requested))
+            old.(sprintf(parameter_requested)) = parameter_new_value;
+            values = struct2cell(old);
+            %fields_inner
+            updated_model_structure = Functions_ModelSolution.ModelStructure(values{1:10});
+        else
+            error('Parameter not in the structure')
+        end
+        clear old
+        return
+        
+    end % End of function model2modify
+
+
+        
+% ------------------------------------------------------------------------------------------- 
+% -------------------------------------------------------------------------------------------
 % -------------------------------------------------------------------------------------------
             
         % Policy Function Iteration
@@ -37,6 +173,13 @@ classdef Functions_ModelSolution
 
             M = ModelStructure; % To avoid typing everywhere ModelStructure
             
+
+            % The way the Julia code is written, PolicyFunctionMatrix = G_ap_old
+            % is forced to be empty. So to make it work equivalently before
+            % raising this with Baxter and Sergio, I make it an empty
+            % function here always (even when read as a filled matrix).
+
+            PolicyFunctionMatrix = zeros(0,0,1);
             % Initialize variables for loop
             if isempty(PolicyFunctionMatrix) == 1
                 G_ap_old = (M.p.r*M.zeta_mat+1).*M.a_mat;

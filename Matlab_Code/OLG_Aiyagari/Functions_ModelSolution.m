@@ -22,6 +22,157 @@ classdef Functions_ModelSolution
         end
         
 % ------------------------------------------------------------------------------------------- 
+% ------------------------------------------------------------------------------------------- 
+% -------------------------------------------------------------------------------------------
+
+
+% Parameter structure
+    function par_structure = Parameters(beta,sigma, ...
+            rho_eps,sigma_eps,r, w, a_min,Hist_max_iter,Hist_tol, ...
+            Hist_eta, c_min, Max_Age)
+
+            par_structure = struct('beta',beta, 'sigma',sigma, 'rho_eps', rho_eps, 'sigma_eps',sigma_eps,...
+    'r',r, 'w',w,...
+    'a_min',a_min,...
+    'Hist_max_iter',Hist_max_iter,'Hist_tol',Hist_tol,'Hist_eta',Hist_eta,...
+    'c_min',c_min, ...
+    'Max_Age',Max_Age); 
+
+            par_structure.Surv_Pr = Setup_Demographics.Survival_Probabilities_Bell_Miller(par_structure.Max_Age);
+            par_structure.Age_Pi = Setup_Demographics.Age_Transition(par_structure.Max_Age, par_structure.Surv_Pr);
+            par_structure.Age_PDF = Setup_Demographics.Age_Distribution(par_structure.Age_Pi);
+
+            return
+    end % End of function Parameters
+
+% ------------------------------------------------------------------------------------------- 
+% ------------------------------------------------------------------------------------------- 
+
+    function updated_par_structure = par2modify(parameter_structure, parameter_requested, parameter_new_value)
+        % This function checks if the requested parameter is in the
+        % parameter structure. If so, requests the function 'Parameters' for 
+        % an updated parameter structure. If the requested parameter is not
+        % there, displays an error sign.
+
+        % This is what I though to use to overcome the @kw macro/structure
+        % in Julia
+
+        % The requested parameter should be written as: 'parameter_requested' .
+        
+        old = parameter_structure;
+        if any(strcmp(fieldnames(parameter_structure),parameter_requested))
+            old.(sprintf(parameter_requested)) = parameter_new_value;
+            values = struct2cell(old);
+            %fields_inner
+            updated_par_structure = Functions_ModelSolution.Parameters(values{1:12});
+        else
+            error('Parameter not in the structure')
+        end
+        clear old
+        return
+    end
+
+% -------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------- 
+% -------------------------------------------------------------------------------------------
+
+
+
+    % Model structure
+
+        function model_structure = ModelStructure(par_structure, a_max, theta_a, theta_a_f, n_a ,  n_a_fine, n_eps, read_flag)
+
+            
+    % Inputs: parameter structure plus 8 scalar inputs that allow the function to create the model structure
+    model_structure = struct('p',par_structure, ...
+    'a_max', a_max, 'theta_a', theta_a, 'theta_a_f', theta_a_f, 'n_a',n_a, 'n_a_fine',n_a_fine, 'n_eps',n_eps, 'read_flag',read_flag);
+    par = model_structure.p;
+
+
+    model_structure.a_grid = VFI_Toolbox.Make_Grid(model_structure.n_a, model_structure.theta_a, par.a_min, model_structure.a_max,"Poly");
+    model_structure.a_grid_fine = VFI_Toolbox.Make_Grid(model_structure.n_a_fine, model_structure.theta_a_f, par.a_min, model_structure.a_max,"Poly");
+    
+    % Labor productivity process
+
+    %model_structure.n_eps = 11; % Size of ϵ_grid - included in the  structure above
+    model_structure.MP_eps = struct('N',{}, 'grid',{}, 'Pi',{}, 'PDF',{},'CDF',{});
+    [model_structure.MP_eps(1).N,model_structure.MP_eps(1).grid,model_structure.MP_eps(1).Pi,model_structure.MP_eps(1).PDF,model_structure.MP_eps(1).CDF] = VFI_Toolbox.Rouwenhorst95(par.rho_eps,par.sigma_eps,model_structure.n_eps); % Markov Process for epsilon
+    model_structure.eps_ref = 1.038479216975849/dot(exp(model_structure.MP_eps(1).grid),model_structure.MP_eps(1).PDF); % Reference level for labor efficiency 
+    model_structure.eps_grid = model_structure.eps_ref.*exp(model_structure.MP_eps(1).grid); % Grid in levels
+    
+    % Labor productivity process - Life Cycle 
+    model_structure.age_vec = transpose(1:1:par.Max_Age) ;
+    model_structure.log_xi_grid = (60*(model_structure.age_vec-1) - ((model_structure.age_vec-1).^2))/1800 ; % Process peaks at age 50, and by age 80 gives the same income as when newborn
+    model_structure.xi_ref = 1/sum(exp(model_structure.log_xi_grid).*par.Age_PDF) ; % Reference level for labor efficiency 
+    model_structure.xi_grid = model_structure.xi_ref*exp(model_structure.log_xi_grid) ; %Grid in levels
+    
+    % State matrices
+    model_structure.a_mat = repmat(transpose(model_structure.a_grid),[1,model_structure.n_eps,par.Max_Age]);
+    model_structure.eps_mat = repmat(model_structure.eps_grid,[model_structure.n_a,1,par.Max_Age]);
+    model_structure.xi_mat = repmat(reshape(model_structure.xi_grid,[1,1,par.Max_Age]),model_structure.n_a, model_structure.n_eps,1);
+    model_structure.a_mat_fine =  repmat(transpose(model_structure.a_grid_fine),[1,model_structure.n_eps,par.Max_Age]);
+    model_structure.eps_mat_fine = repmat(model_structure.eps_grid,[model_structure.n_a_fine,1,par.Max_Age]);
+    model_structure.xi_mat_fine = repmat(reshape(model_structure.xi_grid,[1,1,par.Max_Age]),model_structure.n_a_fine, model_structure.n_eps,1);
+    model_structure.a_mat_aeps = repmat(transpose(model_structure.a_grid),1,model_structure.n_eps);
+    
+    % Labor income matrices
+    model_structure.y_mat = par.w*model_structure.eps_mat.*model_structure.xi_mat ; 
+    model_structure.y_mat_fine = par.w*model_structure.eps_mat_fine.*model_structure.xi_mat_fine ; 
+    
+    % Value and Policy Functions
+    model_structure.V = zeros([model_structure.n_a, model_structure.n_eps, par.Max_Age]); % Value function
+    model_structure.G_ap = zeros([model_structure.n_a, model_structure.n_eps, par.Max_Age]); % Policy Function for Capital/Assets
+    model_structure.G_c = zeros([model_structure.n_a, model_structure.n_eps, par.Max_Age]); % Policy Function for Consumption
+    model_structure.V_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, par.Max_Age]); % Value function
+    model_structure.G_ap_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, par.Max_Age]); % Policy Function for Capital/Assets
+    model_structure.G_c_fine = zeros([model_structure.n_a_fine, model_structure.n_eps, par.Max_Age]); % Policy Function for Consumption
+    
+    % Distribution Guess
+    model_structure.n_cut_fine = double(VFI_Toolbox.Grid_Inv(1000,model_structure.n_a_fine,model_structure.theta_a_f, par.a_min, model_structure.a_max,"Poly")); %  Index just below 1000
+    model_structure.Gamma_a_guess = (1/((model_structure.n_cut_fine))).*([ones([model_structure.n_cut_fine, model_structure.n_eps, par.Max_Age]) ; zeros([model_structure.n_a_fine - model_structure.n_cut_fine, model_structure.n_eps, par.Max_Age])]);
+    model_structure.Gamma = model_structure.Gamma_a_guess.*repmat(model_structure.MP_eps(1).PDF, model_structure.n_a_fine, 1, par.Max_Age).*repmat(reshape(par.Age_PDF,[1,1,par.Max_Age]),model_structure.n_a_fine, model_structure.n_eps,1);
+    
+    % Matrices for discretization of policy functions
+    model_structure.H_ind = zeros([model_structure.n_a_fine, model_structure.n_eps, par.Max_Age]); % Index for discretization of savings choice  
+    model_structure.H_omega_lo_s = zeros(model_structure.n_a_fine, model_structure.n_eps, par.Max_Age, model_structure.n_eps); 
+    model_structure.H_omega_hi_s = zeros(model_structure.n_a_fine, model_structure.n_eps, par.Max_Age, model_structure.n_eps);
+    model_structure.H_omega_lo_d = zeros(model_structure.n_a_fine, model_structure.n_eps, par.Max_Age, model_structure.n_eps);
+    model_structure.H_omega_hi_d = zeros(model_structure.n_a_fine, model_structure.n_eps, par.Max_Age, model_structure.n_eps);
+
+
+        end % End of ModelStructure
+
+    % -------------------------------------------------------------------------------------------
+    % ------------------------------------------------------------------------------------------- 
+    % ***************************************************
+   
+ function updated_model_structure = model2modify(model_structure, parameter_requested, parameter_new_value)
+        % This function checks if the requested parameter is in the
+        % model structure. If so, requests the function 'ModelStructure' for 
+        % an updated model structure. If the requested parameter is not
+        % there, displays an error sign.
+
+        % This is what I though to use to overcome the @kw macro/structure
+        % in Julia
+
+        % The requested parameter should be written as: 'parameter_requested' .
+        
+        old = model_structure;
+        if any(strcmp(fieldnames(model_structure),parameter_requested))
+            old.(sprintf(parameter_requested)) = parameter_new_value;
+            values = struct2cell(old);
+            %fields_inner
+            updated_model_structure = Functions_ModelSolution.ModelStructure(values{1:8});
+        else
+            error('Parameter not in the structure')
+        end
+        clear old
+        return
+        
+    end % End of function model2modify
+
+% -------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------- 
 % -------------------------------------------------------------------------------------------
             
         % Policy Function Iteration: PFI Fixed Point
@@ -444,7 +595,7 @@ end % End of function G_ap_epsa
 
 % Euler Equation Percentage Error
 
-function Output1 = Euler_Error(iter_eps, age, a, ModelStructure)
+function Output1 = Euler_Error(i_eps, age, a, ModelStructure)
     
     M = ModelStructure;
     % Local variables
@@ -464,10 +615,10 @@ function Output1 = Euler_Error(iter_eps, age, a, ModelStructure)
 
 
     %  Interpolate G_ap at current epsilon
-    ap = min(a_grid(end),max(a_grid(1), Functions_ModelSolution.G_ap_epsa(age, iter_eps, a, M)));
+    ap = min(a_grid(end),max(a_grid(1), Functions_ModelSolution.G_ap_epsa(age, i_eps, a, M)));
 
     % Current Consumption
-    c = (1+r)*a + y_mat(1,iter_eps,age) - ap ;
+    c = (1+r)*a + y_mat(1,i_eps,age) - ap ;
 
     % Compute LHS of Euler Equation
     LHS = Functions_ModelSolution.d_utility(c, p);
@@ -479,7 +630,7 @@ function Output1 = Euler_Error(iter_eps, age, a, ModelStructure)
         for iter_epsp  = 1:n_eps
             cp = (1+r)*ap + y_mat(1,iter_epsp,age+1) - Functions_ModelSolution.G_ap_epsa(age+1, iter_epsp, ap, M);
             up = Functions_ModelSolution.d_utility(cp, p);
-            RHS_prob(iter_epsp) = beta*(Surv_Pr(age)*MP_eps.Pi(i_eps,i_epsp)*(1+r)*up);
+            RHS_prob(iter_epsp) = beta*(Surv_Pr(age)*MP_eps.Pi(i_eps,iter_epsp)*(1+r)*up);
         end
         RHS = sum(RHS_prob, 'all');
     else
@@ -515,33 +666,33 @@ function Output1 = Euler_Error(iter_eps, age, a, ModelStructure)
             % PFI_Fixed_Point
             M_in = Functions_ModelSolution.Solve_Policy_Functions('T_BI_G',M_in);
         
-        for j=1:M_in.p.Max_Age
-            M_in.G_ap(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
-                'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
-                'OLG/File_Folder/G_ap_Julia%i.csv'],j));
-            M_in.G_ap_fine(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
-                'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
-                'OLG/File_Folder/G_ap_fine_Julia%i.csv'],j));
-            M_in.G_c(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
-                'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
-                'OLG/File_Folder/G_c_Julia%i.csv'],j));
-            M_in.G_c_fine(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
-                'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
-                'OLG/File_Folder/G_ap_fine_Julia%i.csv'],j));
+        %for j=1:M_in.p.Max_Age
+        %    M_in.G_ap(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
+        %        'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
+        %        'OLG/File_Folder/G_ap_Julia%i.csv'],j));
+        %    M_in.G_ap_fine(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
+        %        'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
+        %        'OLG/File_Folder/G_ap_fine_Julia%i.csv'],j));
+        %    M_in.G_c(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
+        %        'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
+        %        'OLG/File_Folder/G_c_Julia%i.csv'],j));
+        %    M_in.G_c_fine(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
+        %        'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
+        %        'OLG/File_Folder/G_ap_fine_Julia%i.csv'],j));
 
-        end
+        %end
 
 
         % Compute Distribution
             % Histogram_Method_Loop 
             M_in  = Functions_ModelSolution.Histogram_Method_Loop(M_in, Gamma_0);
 
-            for j=1:M_in.p.Max_Age
-            M_in.Gamma(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
-                'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
-                'OLG/File_Folder/Gamma_Julia%i.csv'],j));
+            %for j=1:M_in.p.Max_Age
+            %M_in.Gamma(:,:,j) = readmatrix( sprintf(['/Users/cyberdim/Dropbox/' ...
+               % 'WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/' ...
+               % 'OLG/File_Folder/Gamma_Julia%i.csv'],j));
 
-            end
+            %end
         % Save Results
         %writematrix(M_in.G_ap,'./File_Folder/Policy_Function.csv')
         %writematrix(M_in.Gamma,'./File_Folder/Distribution.csv')

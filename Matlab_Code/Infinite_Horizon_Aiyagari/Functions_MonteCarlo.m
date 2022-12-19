@@ -35,6 +35,56 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Panel Structure
+
+function PanelModelStructure = PanelStructure(N_Panel, T_Panel, T_Simul, N_Min, Simul_tol, rng_seed)
+
+    PanelModelStructure = struct('N_Panel', N_Panel , 'T_Panel', T_Panel, 'T_Simul', T_Simul, 'N_Min', N_Min, 'Simul_tol', Simul_tol, 'rng_seed', rng_seed);
+
+    PanelModelStructure.a_mat    = zeros([PanelModelStructure.N_Panel, PanelModelStructure.T_Panel]);
+    PanelModelStructure.c_mat    =  zeros([PanelModelStructure.N_Panel, PanelModelStructure.T_Panel]);
+    PanelModelStructure.eps_mat  = zeros([PanelModelStructure.N_Panel, PanelModelStructure.T_Panel]);
+    PanelModelStructure.zeta_mat = zeros([PanelModelStructure.N_Panel, PanelModelStructure.T_Panel]);
+    PanelModelStructure.t_vec    = zeros([PanelModelStructure.N_Panel,1]);
+
+
+end % End of function PanelStructure
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function updated_model_structure = panelmodel2modify(panel_model_structure, parameter_requested, parameter_new_value)
+        % This function checks if the requested parameter is in the
+        % panel_model structure. If so, requests the function 'PanelStructure' for 
+        % an updated model structure. If the requested parameter is not
+        % there, displays an error sign.
+
+        % This is what I thought to use to overcome the @kw macro/structure
+        % in Julia
+
+        % The requested parameter should be written as: 'parameter_requested' .
+        
+        old = panel_model_structure;
+        if any(strcmp(fieldnames(panel_model_structure),parameter_requested))
+            old.(sprintf(parameter_requested)) = parameter_new_value;
+            values = struct2cell(old);
+            %fields_inner
+            updated_model_structure = Functions_MonteCarlo.PanelStructure(values{1:6});
+        else
+            error('Parameter not in the structure')
+        end
+        clear old
+        return
+        
+    end % End of function panelmodel2modify
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Simulate Cohort
 
             function [Output1, Output2, Output3, Output4] = Simulate_Cohort(ModelStructure, PanelModel_Structure, a_vec, eps_vec, zeta_vec, c_vec,c_flag)
@@ -72,9 +122,6 @@
                 for i=1:N_Panel
                     % Compute future assets: Linear interpolation (manually)
                     if ((a_min<a_vec(i)) && (a_vec(i)<a_max))
-                        % if (a_vec(i) > 100000) && (mod(t,50)==0) % What is t?
-                        % fprintf(" Asset test - a_vec = $(%8.4f) epsilon =
-                        % $(%8.4f) zeta = $(%8.4f) -  \n " , a_vec(i), eps_vec(i), zeta_vec(i))  
                         i_lo = min(n_a_fine-1, VFI_Toolbox.Grid_Inv(a_vec(i), n_a_fine, theta_a_f, a_min, a_max, "Poly"));
                         omega = 1 - min(1, max(0,(a_vec(i)-a_grid_fine(i_lo))/(a_grid_fine(i_lo+1)-a_grid_fine(i_lo))));
                         a_vec(i) = omega*G_ap_fine(i_lo, eps_vec(i), zeta_vec(i)) + (1-omega)*G_ap_fine(i_lo+1, eps_vec(i), zeta_vec(i))  ;

@@ -41,8 +41,6 @@ for h=2:(M_Aiyagari.p.Max_Age -(age_0 - 1))
    for h_inner = 1:M_Aiyagari.p.Max_Age
        if h_inner ~=(h+(age_0-1))
            Gamma_h_inner(:,:,h_inner)=0;
-       else
-           fprintf('success is %i \n', h_inner)
        end
    end
 
@@ -101,39 +99,6 @@ end
 % Integrate covariance
 cor_a_3565 = sum(sum(cov_a_3565.*Gamma_h(:,:,age_0)))/sqrt((sd_a_0^2)*(sd_a_N^2));
 disp("===============================================")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
