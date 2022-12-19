@@ -26,7 +26,7 @@
     % cd 'D:/Dropbox/Files/Economics-Research/Project-09_SIM/Code/Histogram_Iteration/Julia_Code/Infinite_Horizon_Aiyagari/ '
 % Javier's Computer
      %Home
-     cd '/Users/cyberdim/Dropbox/WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/Infinitely_Lived'
+     cd '/Users/cyberdim/Dropbox/WESTERN_ECONOMICS/RA_Baxter/Histogram_Iteration/Matlab_Code/Infinite_Horizon_Aiyagari'
      % Laptop
      %cd '/Volumes/EHDD1/Dropbox/WESTERN_ECONOMICS/RA_Baxter/Matlab_Hist_Iter/Infinitely_Lived'
 % Compute Canada Server
@@ -165,7 +165,7 @@ M_Aiyagari = Functions_ModelSolution.Aiyagari_Equilibrium(Model);
 toc
 
 % # Get stats and graphs for the solution of the model 
-%run('CalculateMoments_Solution.m')
+run('CalculateMoments_Solution.m')
 
 
 disp('===============================================')
