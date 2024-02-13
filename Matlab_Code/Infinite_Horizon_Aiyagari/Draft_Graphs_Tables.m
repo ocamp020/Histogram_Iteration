@@ -62,7 +62,7 @@ S_A_Corr = csvread(strcat(MC_Folder, '/S_A_Corr.csv'));
 S_eps_Corr = csvread(strcat(MC_Folder, '/S_eps_Corr.csv'));
 S_zeta_Corr = csvread(strcat(MC_Folder, '/S_z_Corr.csv'));
 
-
+% Top Shares + Pareto Coefficient Table      
 Mat_Top_Stats = {'Top Wealth Shares + Pareto Tail', '', '', '', '', ''; ...
                 'Histogram', '', '', '', '', ''; ...
                 'Grid Size', H_grid_size'; ...
@@ -99,3 +99,264 @@ writematrix(Mat_Top_Stats,'./Fig_Folder/Table_Top_Stats.csv')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Set up colors
 %(LINE 132 IN JULIA)
+
+
+% Set up color vectors
+color_vec_H = {'lightskyblue2', 'cornflowerblue', 'black', 'royalblue4'};
+color_vec_S = colorGradient([0.9294 0.7961 0.1765], [1 0.2824 0.1020], 5);
+
+% Display color vectors (optional)
+disp('Color Vector H:');
+disp(color_vec_H);
+
+disp('Color Vector S:');
+disp(color_vec_S);
+
+% Function to generate color gradient in MATLAB
+function gradient = colorGradient(startColor, endColor, steps)
+    r = linspace(startColor(1), endColor(1), steps);
+    g = linspace(startColor(2), endColor(2), steps);
+    b = linspace(startColor(3), endColor(3), steps);
+    gradient = [r', g', b'];
+end
+
+% Pareto Tail
+a_min_PT = 10000;
+x_tick_PT = [1, 2, 4, 8];
+x_label_PT = {'$10m', '$20m', '$40m', '$80m'};
+marker_size = [3.5, 3.5, 3, 2.5];
+marker_alpha = [0.85, 0.9, 0.9, 0.95];
+marker_step = [3, 3, 3, 3];
+marker_shape = {'square', 'circle', 'star4', 'utriangle'};
+
+% Results from Histogram (comparing different grid sizes)
+figure;
+ytickfontsize = 12;
+xtickfontsize = 12;
+xtick_direction = 'out';
+foreground_color_legend = 'none';
+background_color_legend = 'none';
+legendfontsize = 10;
+
+gr(ytickfontsize, xtickfontsize, xtick_direction, foreground_color_legend, background_color_legend, legendfontsize);
+
+a_grid = M_Simul.a_grid(M_Simul.a_grid < a_min_PT);
+plot(log(a_grid), a_grid, 'DisplayName', '');
+
+hold on;
+
+for i = 2:4
+    ind = H_a_grid(1:H_grid_size(i), i) >= a_min_PT;
+    grid_1M = H_a_grid(1:H_grid_size(i), i);
+    grid_1M = grid_1M(ind);
+    Gamma_a = H_Γ_a(1:H_grid_size(i), i);
+    Gamma_a_1M = Gamma_a(ind) / sum(Gamma_a(ind));
+    Gamma_a_1M = Gamma_a_1M / sum(Gamma_a_1M);
+    CCDF_1M = 1 - cumsum(Gamma_a_1M);
+    
+    scatter(log(grid_1M(1:marker_step(i):end-1) / a_min_PT), log(CCDF_1M(1:marker_step(i):end-1)), ...
+        'Marker', marker_shape{i}, 'SizeData', marker_size(i), 'MarkerFaceAlpha', marker_alpha(i), ...
+        'MarkerEdgeColor', color_vec_H{i}, 'MarkerFaceColor', color_vec_H{i}, ...
+        'DisplayName', ['\alpha_{H}=', num2str(round(H_Pareto_Coeff(i), 2)), ', N=', num2str(H_grid_size(i))]);
+end
+
+xlabel('Log Assets', 'FontSize', 18);
+ylabel('Log Counter CDF', 'FontSize', 18);
+xlim([log(1), log(100000 / a_min_PT)]);
+xticks(log(x_tick_PT));
+xticklabels(x_label_PT);
+ylim([-5, 0]);
+
+legend('Location', 'northwest');
+legend('FontSize', 10);
+legend('AutoUpdate', 'off');
+
+% Save the figure
+saveas(gcf, './Fig_Folder/Draft_Pareto_Hist.pdf');
+
+
+% Results from Monte Carlo (comparing different simulation sizes)
+    %Separate plots
+for i = 1:N_S
+    figure;
+    gr(ytickfontsize, xtickfontsize, xtick_direction, foreground_color_legend, background_color_legend, legendfontsize);
+    a_grid = M_Simul.a_grid(M_Simul.a_grid < a_min_PT);
+    plot(log(a_grid), a_grid, 'DisplayName', '');
+
+    % Add Histogram with 500 grid points
+    ind_H = H_a_grid(1:H_grid_size(2), 2) >= a_min_PT;
+    grid_1M_H = H_a_grid(1:H_grid_size(2), 2);
+    grid_1M_H = grid_1M_H(ind_H);
+    Gamma_a_H = H_Γ_a(1:H_grid_size(2), 2);
+    Gamma_a_1M_H = Gamma_a_H(ind_H) / sum(Gamma_a_H(ind_H));
+    Gamma_a_1M_H = Gamma_a_1M_H / sum(Gamma_a_1M_H);
+    CCDF_1M_H = 1 - cumsum(Gamma_a_1M_H);
+    
+    scatter(log(grid_1M_H(1:marker_step(2):end-1) / a_min_PT), log(CCDF_1M_H(1:marker_step(2):end-1)), ...
+        'Marker', ':star4', 'SizeData', 4.5, 'MarkerFaceAlpha', 0.90, 'MarkerEdgeColor', color_vec_H{2}, 'MarkerFaceColor', color_vec_H{2}, ...
+        'DisplayName', ['\alpha_{H}=', num2str(round(H_Pareto_Coeff(2), 2)), ', N=', num2str(H_grid_size(2))]);
+
+    % Add Simulation on top
+    ind_S = S_Wealth_Sample(i, 1:S_sample(i)) >= a_min_PT;
+    grid_1M_S = sort(S_Wealth_Sample(i, 1:S_sample(i))[ind_S]);
+    CCDF_1M_S = (length(grid_1M_S):-1:1) / length(grid_1M_S);
+    
+    scatter(log(grid_1M_S(1:end-1) / a_min_PT), log(CCDF_1M_S(1:end-1)), ...
+        'Marker', ':circle', 'SizeData', 3.75, 'MarkerFaceAlpha', 0.95, 'MarkerEdgeColor', color_vec_S{end}, 'MarkerFaceColor', color_vec_S{end}, ...
+        'DisplayName', ['\alpha_{S}=', num2str(round(S_Pareto_Coeff(i), 2)), ', N=', num2str(S_sample(i) / 1000), 'k']);
+
+    xlabel('Log Assets', 'FontSize', 18);
+    ylabel('Log Counter CDF', 'FontSize', 18);
+    xlim([log(1), log(100000 / a_min_PT)]);
+    xticks(log(x_tick_PT));
+    xticklabels(x_label_PT);
+    ylim([-5, 0]);
+
+    legend('Location', 'northwest');
+    legend('FontSize', 10);
+    legend('AutoUpdate', 'off');
+
+    % Save the figure
+    saveas(gcf, ['./', Fig_Folder, '/Draft_Pareto_Simul_', num2str(S_sample(i) / 1000), 'k.pdf']);
+end
+
+figure;
+gr(ytickfontsize, xtickfontsize, xtick_direction, foreground_color_legend, background_color_legend, legendfontsize);
+% Add Histogram with 500 grid points
+scatter(log(grid_1M_H(1:marker_step(2):end-1) / a_min_PT), log(CCDF_1M_H(1:marker_step(2):end-1)), ...
+    'Marker', ':star4', 'SizeData', 4.5, 'MarkerFaceAlpha', 0.90, 'MarkerEdgeColor', color_vec_H{2}, 'MarkerFaceColor', color_vec_H{2}, ...
+    'DisplayName', ['\alpha_{H}=', num2str(round(H_Pareto_Coeff(2), 2)), ', N=', num2str(H_grid_size(2))]);
+
+hold on;
+
+% Add Simulation on top
+for i = [2, 3, 4]
+    scatter(log(grid_1M_S(1:end-1) / a_min_PT), log(CCDF_1M_S(1:end-1)), ...
+        'Marker', marker_shape{i}, 'SizeData', 3.5, 'MarkerFaceAlpha', 0.95, 'MarkerEdgeColor', color_vec_S{i}, 'MarkerFaceColor', color_vec_S{i}, ...
+        'DisplayName', ['\alpha_{S}=', num2str(round(S_Pareto_Coeff(i), 2)), ', N=', num2str(S_sample(i) / 1000), 'k']);
+end
+
+xlabel('Log Assets', 'FontSize', 18);
+ylabel('Log Counter CDF', 'FontSize', 18);
+xlim([log(1), log(100000 / a_min_PT)]);
+xticks(log(x_tick_PT));
+xticklabels(x_label_PT);
+ylim([-5, 0]);
+
+legend('Location', 'northwest');
+legend('FontSize', 10);
+legend('AutoUpdate', 'off');
+
+% Save the figure
+saveas(gcf, ['./', Fig_Folder, '/Draft_Pareto_Simul_vs_Hist.pdf']);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Decile Transition
+Mat_Decile_TR = [
+    "Decile Transition", "", "", "", "", "";
+    "Histogram", "", "", "", "", "";
+    "Grid Size", H_grid_size;
+    "D1-D1", H_Decile_Tr(1, 1, :)';
+    "D1-D2", H_Decile_Tr(1, 2, :)';
+    "D2-D1", H_Decile_Tr(2, 1, :)';
+    "D2-D2", H_Decile_Tr(2, 2, :)';
+    "D10-D10", H_Decile_Tr(10, 10, :)';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", H_Γ_timed' + H_M_timed(:, 2)';
+    "Model Time", H_Γ_timed';
+    "Moment Time", H_M_timed(:, 2)';
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "Simulation", "", "", "", "", "";
+    "Grid Size", "50k", "250k", "500k", "1M", "10M";
+    "D1-D1", S_Decile_Tr(1, 1, :)';
+    "D1-D2", S_Decile_Tr(1, 2, :)';
+    "D2-D1", S_Decile_Tr(2, 1, :)';
+    "D2-D2", S_Decile_Tr(2, 2, :)';
+    "D10-D10", S_Decile_Tr(10, 10, :)';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", S_Γ_timed + S_M_timed(:, 1)' + S_M_timed(:, 3)';
+    "Model Time", repmat(S_Γ_timed(1), 1, N_S);
+    "Simul Time", S_M_timed(:, 1)';
+    "Moment Time", S_M_timed(:, 3)';
+    "-", "-", "-", "-", "-", "-";
+];
+
+writetable(cell2table(Mat_Decile_TR), ['./', Fig_Folder, '/Table_Decile_Tr.csv'], 'WriteVariableNames', false);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Decile Transition
+Mat_Decile = [
+    "Deciles", "", "", "", "", "";
+    "Histogram", "", "", "", "", "";
+    "Grid Size", H_grid_size;
+    "D0", H_Decile(1, 2, :)';
+    "D1", H_Decile(2, 2, :)';
+    "D2", H_Decile(3, 2, :)';
+    "D3", H_Decile(4, 2, :)';
+    "D4", H_Decile(5, 2, :)';
+    "D5", H_Decile(6, 2, :)';
+    "D6", H_Decile(7, 2, :)';
+    "D7", H_Decile(8, 2, :)';
+    "D8", H_Decile(9, 2, :)';
+    "D9", H_Decile(10, 2, :)';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", H_Γ_timed' + H_M_timed(:, 2)';
+    "Model Time", H_Γ_timed';
+    "Moment Time", H_M_timed(:, 2)';
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "Simulation", "", "", "", "", "";
+    "Grid Size", "50k", "250k", "500k", "1M", "10M";
+    "D0", S_Decile(1, :)';
+    "D1", S_Decile(2, :)';
+    "D2", S_Decile(3, :)';
+    "D3", S_Decile(4, :)';
+    "D4", S_Decile(5, :)';
+    "D5", S_Decile(6, :)';
+    "D6", S_Decile(7, :)';
+    "D7", S_Decile(8, :)';
+    "D8", S_Decile(9, :)';
+    "D9", S_Decile(10, :)';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", S_Γ_timed + S_M_timed(:, 1)' + S_M_timed(:, 3)';
+    "Model Time", repmat(S_Γ_timed(1), 1, N_S);
+    "Simul Time", S_M_timed(:, 1)';
+    "Moment Time", S_M_timed(:, 3)';
+    "-", "-", "-", "-", "-", "-";
+];
+
+writetable(cell2table(Mat_Decile), ['./', Fig_Folder, '/Table_Decile.csv'], 'WriteVariableNames', false);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Moments
+Mat_Corr = [
+    "Autocorrelations", "", "", "", "", "";
+    "Histogram", "", "", "", "", "";
+    "Grid Size", H_grid_size;
+    "Cons    Auto-Corr", H_Cons_Corr';
+    "Assets  Auto-Corr", H_A_Corr';
+    "Epsilon Auto-Corr", H_ϵ_Corr';
+    "Z       Auto-Corr", H_ζ_Corr';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", H_Γ_timed' + H_M_timed(:, 3)';
+    "Model Time", H_Γ_timed';
+    "Moment Time", H_M_timed(:, 3)';
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "-", "-", "-", "-", "-", "-";
+    "Simulation", "", "", "", "", "";
+    "Sample Size", "50k", "250k", "500k", "1M", "10M";
+    "Cons    Auto-Corr", S_Cons_Corr';
+    "Assets  Auto-Corr", S_A_Corr';
+    "Epsilon Auto-Corr", S_ϵ_Corr';
+    "Z       Auto-Corr", S_ζ_Corr';
+    "-", "-", "-", "-", "-", "-";
+    "Total Time", S_Γ_timed + S_M_timed(:, 1)' + S_M_timed(:, 4)';
+    "Model Time", repmat(S_Γ_timed(1), 1, N_S);
+    "Simul Time", S_M_timed(:, 1)';
+    "Moment Time", S_M_timed(:, 4)';
+    "-", "-", "-", "-", "-", "-";
+];
+
+writetable(cell2table(Mat_Corr), ['./', Fig_Folder, '/Table_Auto_Corr.csv'], 'WriteVariableNames', false);
+

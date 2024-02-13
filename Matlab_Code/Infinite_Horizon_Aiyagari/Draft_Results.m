@@ -8,7 +8,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Histogram Iteration Method
+%% Histogram Iteration Method (Line 168 in Julia)
 
 % Run Histogram Simulation for Different Grids 
 H_grid_size = [250 250 500 1000 5000] ; 
@@ -98,7 +98,7 @@ writematrix(H_zeta_Corr,'./Hist_Folder/H_z_Corr.csv')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Run Simulation for Different Panel Size 
+%% Run Simulation for Different Panel Size (Line 300 in Julia)
 
     % Set up model structures 
     M_Simul = Functions_ModelSolution.ModelStructure(par, ...
@@ -134,7 +134,7 @@ writematrix(H_zeta_Corr,'./Hist_Folder/H_z_Corr.csv')
 
 
 
-
+    % Moments
     for i=1:N_S
 
         disp(" ")
